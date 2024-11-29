@@ -1,16 +1,18 @@
 spring:
   application:
     name: learning-platform
+
+
   datasource:
-    hikari:
-      jdbc-url: jdbc:postgresql://postgres:5432/learning_platform
+      url: jdbc:postgresql://localhost:5432/learning_platform
       username: ${DB_USER:learning_platform}
       password: ${DB_PASSWORD:learning_platform}
       # dodatna optimizacija baze
-      maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 300000 # 5 min
-      driver-class-name: org.postgresql.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 5
+        idle-timeout: 300000 # 5 min
+        driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
