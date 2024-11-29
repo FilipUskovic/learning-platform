@@ -11,6 +11,5 @@ public record CourseResponse(
         String description,
         CourseStatus status,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {
+        LocalDateTime updatedAt) {
 }

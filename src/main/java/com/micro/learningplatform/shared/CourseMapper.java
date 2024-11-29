@@ -16,5 +16,4 @@ public class CourseMapper {
                 course.getUpdatedAt()
         );
     }
-
 }

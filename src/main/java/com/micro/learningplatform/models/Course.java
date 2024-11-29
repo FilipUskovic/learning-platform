@@ -33,7 +33,6 @@ public class Course extends BaseModel{
     private CourseStatus courseStatus;
 
     protected Course() {}
-
     // Private konstruktor za factory metodu
     private Course(String title, String description) {
         this.title = title;
