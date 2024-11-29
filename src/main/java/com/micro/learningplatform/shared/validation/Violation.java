@@ -1,4 +1,4 @@
-package com.micro.learningplatform.shared;
+package com.micro.learningplatform.shared.validation;
 
 import lombok.Getter;
 

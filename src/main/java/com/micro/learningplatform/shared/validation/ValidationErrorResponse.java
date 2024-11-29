@@ -1,6 +1,5 @@
-package com.micro.learningplatform.shared.exceptions;
+package com.micro.learningplatform.shared.validation;
 
-import com.micro.learningplatform.shared.Violation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

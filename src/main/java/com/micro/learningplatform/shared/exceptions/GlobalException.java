@@ -1,7 +1,7 @@
 package com.micro.learningplatform.shared.exceptions;
 
+import com.micro.learningplatform.shared.validation.ValidationErrorResponse;
 import org.springframework.http.*;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,6 +25,22 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         problemDetail.setTitle("Course Not Found");
         problemDetail.setInstance(URI.create(request.getDescription(false)));
         return problemDetail;
+    }
+
+    @ExceptionHandler(CourseValidationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleValidationException(
+            CourseValidationException ex) {
+
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                ex.getViolations(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .badRequest()
+                .body(response);
     }
 
 

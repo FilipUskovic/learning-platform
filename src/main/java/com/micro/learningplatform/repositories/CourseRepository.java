@@ -33,4 +33,15 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     Page<Course> searchCourses(
             @Param("searchTerm") String searchTerm, Pageable pageable
     );
+
+ @Query("""
+        SELECT c FROM Course c\s
+        WHERE (:status IS NULL OR c.courseStatus = :status)\s
+        AND (:searchTerm IS NULL\s
+             OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+             OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))
+       \s""")
+    Page<Course> advanceSearchCourses(@Param("searchTerm") String searchTerm,
+                                      @Param("status") CourseStatus status,
+                                      Pageable pageable);
 }

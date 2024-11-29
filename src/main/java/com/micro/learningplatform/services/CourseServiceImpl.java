@@ -1,14 +1,14 @@
 package com.micro.learningplatform.services;
 
 import com.micro.learningplatform.models.Course;
-import com.micro.learningplatform.models.dto.CourseCreatedEvent;
-import com.micro.learningplatform.models.dto.CourseResponse;
-import com.micro.learningplatform.models.dto.CreateCourseRequest;
+import com.micro.learningplatform.models.dto.*;
 import com.micro.learningplatform.repositories.CourseRepository;
 import com.micro.learningplatform.shared.CourseMapper;
 import com.micro.learningplatform.shared.exceptions.CourseAlreadyExistsException;
 import com.micro.learningplatform.shared.exceptions.CourseNotFoundException;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,9 +60,21 @@ public class CourseServiceImpl implements CourseService {
 
         course.publish();
         course = courseRepository.save(course);
-        //:TODO promjeniti CourseCreatedEvent u recod CoursePublishEvenet
-        eventPublisher.publishEvent(new CourseCreatedEvent(courseId));
+        eventPublisher.publishEvent(new CoursePublishedEvent(courseId));
 
         return CourseMapper.toDTO(course);
     }
+
+    @Override
+    public Page<CourseResponse> search(CourseSearchRequest searchRequest) {
+        return courseRepository
+                .advanceSearchCourses(
+                        searchRequest.searchTerm(),
+                        searchRequest.status(),
+                        searchRequest.getPageable()
+                )
+                .map(CourseMapper::toDTO);
+    }
+
+
 }

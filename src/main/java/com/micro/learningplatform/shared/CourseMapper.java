@@ -8,12 +8,11 @@ import org.springframework.stereotype.Component;
 public class CourseMapper {
     public static CourseResponse toDTO(Course course) {
         return new CourseResponse(
-                course.getId(),
+                course.getId().toString(),
                 course.getTitle(),
                 course.getDescription(),
                 course.getCourseStatus(),
-                course.getCreatedAt(),
-                course.getUpdatedAt()
+                course.getCreatedAt()
         );
     }
 }

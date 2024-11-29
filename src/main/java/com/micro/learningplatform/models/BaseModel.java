@@ -29,4 +29,7 @@ public abstract class BaseModel {
     @Version
     private Long version;
 
+    protected BaseModel() {}
+
+
 }

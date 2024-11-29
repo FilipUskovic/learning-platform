@@ -22,7 +22,7 @@ public class Course extends BaseModel{
     private UUID Id;
 
     @Size(min = 1, max = 200)
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String title;
 
     @Column(columnDefinition = "text")
@@ -32,7 +32,9 @@ public class Course extends BaseModel{
     @Column(nullable = false)
     private CourseStatus courseStatus;
 
-    protected Course() {}
+    protected Course() {
+        super(); // pozivamo konstrukt s bazne klase
+    }
     // Private konstruktor za factory metodu
     private Course(String title, String description) {
         this.title = title;
@@ -59,11 +61,11 @@ public class Course extends BaseModel{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Course course = (Course) o;
-        return Objects.equals(Id, course.Id);
+        return Objects.equals(Id, course.Id) && Objects.equals(title, course.title);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(Id);
+        return Objects.hash(Id, title);
     }
 }
