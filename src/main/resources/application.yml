@@ -1,1 +1,41 @@
-spring.application.name=learning-platform
+spring:
+  application:
+    name: learning-platform
+  datasource:
+    hikari:
+      jdbc-url: jdbc:postgresql://postgres:5432/learning_platform
+      username: ${DB_USER:learning_platform}
+      password: ${DB_PASSWORD:learning_platform}
+      # dodatna optimizacija baze
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000 # 5 min
+      driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # kada dodam fly way promjenti na validate
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false # Važno za performanse i izbjegavanje LazyInitializationException
+
+  flyway:
+    enabled: false
+    baseline-on-migrate: false
+    locations: classpath:db/migration
+
+  task:
+    execution:
+      pool:
+        # Konfiguracija Virtual Threads
+        core-size: 1 # Za virtual threads, dovoljan je 1 carrier thread
+        queue-capacity: 100000
+      thread-name-prefix: learning-platform-
+  threads:
+    virtual:
+      enabled: true
+
+
