@@ -40,7 +40,7 @@ public class CourseModuleService {
 
     // Metoda za efikasno procesiranje velikog broja modula
     @Transactional
-    public void processModulesInBatches(UUID courseId, List<ModuleData> modules){
+    public void processModulesInBatches(UUID courseId, List<ModuleData> modules) throws SQLException {
         // Dohvaćamo kurs koristeći EntityManager za bolju kontrolu nad sesijom
         Course course = entityManager.find(Course.class, courseId);
         if (course == null) {
