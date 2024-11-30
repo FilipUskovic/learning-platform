@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
-public class CourseModule {
+public class CourseModule extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

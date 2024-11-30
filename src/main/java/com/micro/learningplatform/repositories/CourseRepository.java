@@ -50,6 +50,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                                       @Param("status") CourseStatus status,
                                       Pageable pageable);
 
+   //TODO provjeriti dali mi trebaju ove dolje metode posto koristi batch s entetymanagerom
 
     @EntityGraph(attributePaths = {"modules"})
     Optional<Course> findWithModulesById(UUID id);
