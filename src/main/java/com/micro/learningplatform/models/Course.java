@@ -84,7 +84,27 @@ public class Course extends BaseModel{
         Objects.requireNonNull(module, "Module cannot be null");
     }
 
+    @Override
+    public String toString() {
+        return "Course{" +
+                "Id=" + Id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", courseStatus=" + courseStatus +
+                ", modules=" + modules +
+                '}';
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Course course = (Course) o;
+        return Objects.equals(Id, course.Id) && Objects.equals(title, course.title);
+    }
 
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(Id, title);
+    }
 }

@@ -2,13 +2,18 @@ package com.micro.learningplatform.repositories;
 
 import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.CourseStatus;
+import jakarta.persistence.Entity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -44,4 +49,30 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     Page<Course> advanceSearchCourses(@Param("searchTerm") String searchTerm,
                                       @Param("status") CourseStatus status,
                                       Pageable pageable);
+
+
+    @EntityGraph(attributePaths = {"modules"})
+    Optional<Course> findWithModulesById(UUID id);
+
+    @Query("select c from Course c left join fetch CourseModule m " +
+            "where c.courseStatus = :status order by c.createdAt desc, m.sequenceNumber")
+    List<Course> findAllWithModulesByStatus(
+            @Param("status") CourseStatus status,
+            Pageable pageable
+    );
+
+    @Query(value = """
+        SELECT c.* FROM courses c
+        WHERE c.course_status = :status
+        AND EXISTS (
+            SELECT 1 FROM course_modules m
+            WHERE m.course_id = c.id
+            AND m.duration <= :maxDuration
+        )
+        """, nativeQuery = true)
+    List<Course> findCoursesWithModulesUnderDuration(
+            @Param("status") String status,
+            @Param("maxDuration") Duration maxDuration
+    );
+
 }
