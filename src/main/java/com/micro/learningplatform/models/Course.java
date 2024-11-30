@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -13,7 +15,6 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
-@ToString
 public class Course extends BaseModel{
 
     @Id
@@ -32,11 +33,23 @@ public class Course extends BaseModel{
     @Column(nullable = false)
     private CourseStatus courseStatus;
 
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @OrderBy("sequenceNumber")
+    private List<CourseModule> modules = new ArrayList<>();
+
+
+
     protected Course() {
-        super(); // pozivamo konstrukt s bazne klase
+      //  super(); // pozivamo konstrukt s bazne klase
     }
+
+    //TODO: ostaviti samo osnovnu domensku logiku, ostalo premjesiti prema ddd prinicipma
+
     // Private konstruktor za factory metodu
     private Course(String title, String description) {
+        this.Id = UUID.randomUUID();
         this.title = title;
         this.description = description;
         this.courseStatus = CourseStatus.DRAFT;
@@ -47,7 +60,15 @@ public class Course extends BaseModel{
         return new Course(createCourseRequest.title(), createCourseRequest.description());
     }
 
-    // Business metode
+    // Domenski važne metode ostaju u entitetu
+
+    public void addModule(CourseModule courseModule){
+        validateModuleAddition(courseModule);
+        modules.add(courseModule);
+        courseModule.setCourse(this);
+
+    }
+
     public void publish(){
         if(this.courseStatus != CourseStatus.DRAFT){
             throw new IllegalStateException("TCourse can only be published from DRAFT state");
@@ -55,17 +76,15 @@ public class Course extends BaseModel{
         courseStatus = CourseStatus.PUBLISHED;
     }
 
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Course course = (Course) o;
-        return Objects.equals(Id, course.Id) && Objects.equals(title, course.title);
+    private void validateModuleAddition(CourseModule module) {
+        if (courseStatus != CourseStatus.DRAFT) {
+            throw new IllegalStateException(
+                    "Can only add modules to courses in DRAFT status");
+        }
+        Objects.requireNonNull(module, "Module cannot be null");
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(Id, title);
-    }
+
+
+
 }

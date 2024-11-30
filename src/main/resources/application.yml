@@ -17,7 +17,7 @@ spring:
   jpa:
     hibernate:
       # kada dodam fly way promjenti na validate
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
