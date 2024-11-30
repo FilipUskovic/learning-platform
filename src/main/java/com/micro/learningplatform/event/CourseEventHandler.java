@@ -18,6 +18,10 @@ public class CourseEventHandler {
     private final NotificationService notificationService;
 
 
+    /* pruza pbradu dogadaja uz entiete CourseCreatedEvent i CoursePublishedEvent sto sa ih napravio dto jel
+       Pomaze decopuling radzdavaj logiku dogadaja od osnovne funkcionalsnoti
+
+     */
 
     @EventListener
     @Async

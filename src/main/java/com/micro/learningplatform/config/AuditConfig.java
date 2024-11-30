@@ -11,6 +11,13 @@ import java.util.Optional;
 @EnableJpaAuditing
 public class AuditConfig {
 
+    /* Klasa koja sluzi/ omogucje automatsko pracenje informacija o stvaranju i izmjeni entiteta
+       -> Koristi automatizaciju pomocu createdBy i lastModifiedBy sto smo kreirali u Base modelu
+
+
+
+     */
+
     @Bean
     public AuditorAware<String> auditorProvider() {
         //TODO: kada dodam security dohvacat korisnika

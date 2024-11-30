@@ -6,6 +6,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CourseMapper {
+
+    // Centralizirano mappiranje pruza dosljednost pri konverzi u dto-ove
+    //ako odlucim mogu autoamtski korsiti npr tool mapstruct koji ce automatski mappirati podatke
+
     public static CourseResponse toDTO(Course course) {
         return new CourseResponse(
                 course.getId().toString(),

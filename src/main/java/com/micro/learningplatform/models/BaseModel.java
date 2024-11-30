@@ -9,7 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Getter
-@MappedSuperclass
+@MappedSuperclass // ne stvara vlastitu tablicu u bazi i ne moze se koristi ko entitet
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseModel {
     // Bazna klasa
