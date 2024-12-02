@@ -18,8 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.hibernate.jpa.HibernateHints.HINT_CACHEABLE;
-import static org.hibernate.jpa.HibernateHints.HINT_CACHE_REGION;
+import static org.hibernate.jpa.HibernateHints.*;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
@@ -76,6 +75,15 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
         ORDER BY c.createdAt DESC
         """)
     List<Course> findByStatus(@Param("status") CourseStatus status);
+
+
+    @QueryHints(value = {
+            @QueryHint(name = HINT_FETCH_SIZE, value = "50"),
+            @QueryHint(name = HINT_CACHEABLE, value = "true"),
+            @QueryHint(name = HINT_CACHE_REGION, value = "course.list"),
+            @QueryHint(name = "org.hibernate.comment", value = "Custom hint for monitoring")
+    })
+    List<Course> findAllWithOptimization();
 
 
 
