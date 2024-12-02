@@ -35,6 +35,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.apache.commons:commons-collections4:4.5.0-M2")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-jcache
+    implementation ("org.hibernate.orm:hibernate-jcache:6.6.2.Final")
+    implementation ("org.ehcache:ehcache:3.10.8")
+    implementation ("org.springframework.boot:spring-boot-starter-cache")
+   // implementation ("jakarta.cache:jakarta.cache-api:1.1.1")
+
     /* kasnije cu korsiti
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 

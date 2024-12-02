@@ -4,6 +4,8 @@ import com.micro.learningplatform.models.dto.CreateCourseRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,10 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
+//Secong level cache za smanjejne opterecenja baze
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Course extends BaseModel{
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -37,6 +42,8 @@ public class Course extends BaseModel{
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL,
             orphanRemoval = true)
     @OrderBy("sequenceNumber")
+    // Secong level cache za smanjejne opterecenja baze
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private List<CourseModule> modules = new ArrayList<>();
 
 

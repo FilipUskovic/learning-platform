@@ -3,11 +3,13 @@ package com.micro.learningplatform.repositories;
 import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.CourseStatus;
 import jakarta.persistence.Entity;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +17,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.hibernate.jpa.HibernateHints.HINT_CACHEABLE;
+import static org.hibernate.jpa.HibernateHints.HINT_CACHE_REGION;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
@@ -60,12 +65,19 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     @EntityGraph(attributePaths = {"modules"})
     Optional<Course> findWithModulesById(UUID id);
 
-    @Query("select c from Course c left join fetch CourseModule m " +
-            "where c.courseStatus = :status order by c.createdAt desc, m.sequenceNumber")
-    List<Course> findAllWithModulesByStatus(
-            @Param("status") CourseStatus status,
-            Pageable pageable
-    );
+    // ovo je second level kesiranje
+    @QueryHints({
+            @QueryHint(name = HINT_CACHEABLE, value = "true"),
+            @QueryHint(name = HINT_CACHE_REGION, value = "course.search")
+    })
+    @Query("""
+        SELECT c FROM Course c
+        WHERE c.courseStatus = :status
+        ORDER BY c.createdAt DESC
+        """)
+    List<Course> findByStatus(@Param("status") CourseStatus status);
+
+
 
     /*
        -> Natvie sql omogucuje optimizaciju koristeci indexne baze podatka
