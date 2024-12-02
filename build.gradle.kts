@@ -34,6 +34,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.apache.commons:commons-collections4:4.5.0-M2")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     /* kasnije cu korsiti
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
