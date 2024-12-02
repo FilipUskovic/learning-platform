@@ -20,6 +20,12 @@ public class CourseModuleManager {
 
     private final CourseRepository courseRepository;
 
+    /* Omogucuje promjenu redosljeta modula untar tecaja
+      -> korsitimo streamapi za mapiranje novih pozicija i imam validaciju prije pormjena redosljeda
+
+
+     */
+
     public void renderModules(UUID courseId, List<UUID> newOrder) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));

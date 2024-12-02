@@ -52,6 +52,11 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
    //TODO provjeriti dali mi trebaju ove dolje metode posto koristi batch s entetymanagerom
 
+
+    /* Entety graph pomaze rijesavanju problema n+1 upitima
+     ->   Entity graph je nacin za definiranje "eager" ucitavanja specificnih asocijacija
+     -> jeft join fetch rijesava potencijonalni n + 1 problem
+     */
     @EntityGraph(attributePaths = {"modules"})
     Optional<Course> findWithModulesById(UUID id);
 
@@ -62,6 +67,10 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             Pageable pageable
     );
 
+    /*
+       -> Natvie sql omogucuje optimizaciju koristeci indexne baze podatka
+       -> Pogotodan za slozene uvjete pretrage
+     */
     @Query(value = """
         SELECT c.* FROM courses c
         WHERE c.course_status = :status

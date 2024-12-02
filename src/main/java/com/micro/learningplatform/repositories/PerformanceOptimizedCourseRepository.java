@@ -25,6 +25,13 @@ public class PerformanceOptimizedCourseRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+    /*
+      Dinamicki generira sql upite pomocu uvjeta kojih sam definirao u searchcriteriju
+      optimiziran za performance kroz grpuby i orderby metode
+      -> flexibilnost kroz dodadvanje dinamickih querija
+      -> povecava perofrmance korsiteci queryHints
+     */
+
     // Metoda koja demonstrira optimizirani pristup pretraživanju
     public List<CourseBatchDTO> findCoursesByOptimizedCriteria(SearchCriteria criteria) {
         // Gradimo SQL upit koji će maksimalno iskoristiti indekse
