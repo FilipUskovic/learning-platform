@@ -19,26 +19,36 @@ public class PartitionMigrationService {
     private final EntityManager entityManager;
     private static final int BATCH_SIZE = 1000;
 
+    // TODO  /**
+    //     * Upravlja edge slučajevima u particioniranju:
+    //     * - Preklapanje particija
+    //     * - Missing particije
+    //     * - Corrupt particije
+    //     * - Concurrent pristup
+    //     */
 
-    //TODO dodati zatvaranje resourca da ne cure podaci
+
+
+
     public void migrateDataToPartitions() {
         // Dohvaćamo podatke u batch-evima da ne preopteretimo memoriju
-        ScrollableResults scrollableResults = entityManager
+        try (ScrollableResults scrollableResults = entityManager
                 .createQuery("SELECT c FROM Course c ORDER BY c.createdAt", Course.class)
                 .unwrap(Query.class) // Unwrap to Hibernate Query
                 .setFetchSize(BATCH_SIZE) // Set fetch size
-                .scroll(ScrollMode.FORWARD_ONLY); // Enable forward-only scrolling
+                .scroll(ScrollMode.FORWARD_ONLY)) {
 
-        int count = 0;
-        while (scrollableResults.next()) {
-            Course course = (Course) scrollableResults.get();
-            migrateToAppropriatePartition(course);
+            int count = 0;
+            while (scrollableResults.next()) {
+                Course course = (Course) scrollableResults.get();
+                migrateToAppropriatePartition(course);
 
-            if (++count % BATCH_SIZE == 0) {
-                entityManager.flush();
-                entityManager.clear();
+                if (++count % BATCH_SIZE == 0) {
+                    entityManager.flush();
+                    entityManager.clear();
+                }
             }
-        }
+        } // Enable forward-only scrolling
     }
 
     private void migrateToAppropriatePartition(Course course) {

@@ -23,7 +23,7 @@ public class QueryAnalyzer {
 
         // Dohvaćamo i analiziramo plan
         List<String> results = nativeQuery.getResultList();
-        return analyzePlan(planLines);
+        return analyzePlan(results);
 
     }
 
