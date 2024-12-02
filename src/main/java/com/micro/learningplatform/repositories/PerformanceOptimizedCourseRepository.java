@@ -9,7 +9,6 @@ import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernateHints;
-import org.hibernate.jpa.QueryHints;
 import org.hibernate.jpa.SpecHints;
 import org.springframework.stereotype.Repository;
 

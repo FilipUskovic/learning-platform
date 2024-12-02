@@ -76,6 +76,10 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
         """)
     List<Course> findByStatus(@Param("status") CourseStatus status);
 
+    // Hintovi poboljsavaju ucinkovitos posebno kod velikih upita
+    // koristim query hints hibernatov hintove za kesiranje
+    //TODO: razmisliti o koristenju criteria api-a ili queryDSL-a za lakšu dinamičku izradu upita
+
 
     @QueryHints(value = {
             @QueryHint(name = HINT_FETCH_SIZE, value = "50"),

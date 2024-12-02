@@ -20,8 +20,11 @@ import java.util.List;
 public class QueryAnalysisService {
 
     /* Analiza performansi upita s preporukama za optimizaciju i Statistike za donošenje odluka o optimizaciji
-
+      - > Analiziranje upita pomoću Hibernate statistike i generiranje preporuka za optimizaciju
+      ->
      */
+
+    //TODO: DODATI npr prometheus za centaliziran pracenej umjesto logirana
 
     private final EntityManager entityManager;
 

@@ -15,6 +15,8 @@ import java.util.List;
 
 public class CoursePartitionManager {
 
+    // svrha ove klase je odrzavanje stvaranje i odrzavanje particija u bazi podatka ua course entiet
+
     /* - automatsko particioniraje po vremenu
         - jednostavno arhiviranje starih pidataka
         - lakse odrzavanje i backup-a starih podatka

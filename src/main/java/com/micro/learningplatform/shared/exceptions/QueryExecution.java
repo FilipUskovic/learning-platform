@@ -1,4 +1,4 @@
-package com.micro.learningplatform.shared.performace;
+package com.micro.learningplatform.shared.exceptions;
 
 import java.time.LocalDateTime;
 

@@ -17,6 +17,16 @@ import javax.cache.spi.CachingProvider;
 @EnableCaching
 public class EhCacheConfig {
 
+    //TODO: promjeniti javax u jakartu ne zelim korisiti zastarijele verzije i nacine
+    //TODO: Razmisliti o integriranom springboot kesiranju da bi pojednostavio konfiguraciju
+    // TODO: Eh107Configuration je cesto nepotreban kod moderne hibernate jcache-a
+
+    /**
+     * Stvara CacheManager koja upravlja kesiranjem
+     * Smanjuje ucestalo poziva prema bazi, time povecava brzinu applikacije
+     * ->
+     */
+
     @Bean(name = "customCacheManager")
     public CacheManager cacheManager() {
         // Kreiranje Ehcache CacheManager-a

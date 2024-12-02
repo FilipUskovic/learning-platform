@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 public class QueryPerformanceAspect {
 
     /*  Pratimo vrijeme izvrsavanja svakog upita i idencificiranje sporih
-
+        Korištenje AOP-a (ascpect orientet programing) za praćenje vremena izvršavanja metoda označenih posebnom anotacijom
+        globalno praćenje performansi bez promjena u kodu
      */
 
 

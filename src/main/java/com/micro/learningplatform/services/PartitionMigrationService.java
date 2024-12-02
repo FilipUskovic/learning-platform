@@ -16,6 +16,11 @@ import javax.swing.*;
 @Transactional
 public class PartitionMigrationService {
 
+    /**
+     * UPRavlja migracija podataka iz jedne particije u drugu
+     * Omogucuje ucinkovitno upravljanje velikim podacima i podrzava razne scenarija poput perklapanja i nedostajucih particija
+     */
+
     private final EntityManager entityManager;
     private static final int BATCH_SIZE = 1000;
 
@@ -24,7 +29,7 @@ public class PartitionMigrationService {
     //     * - Preklapanje particija
     //     * - Missing particije
     //     * - Corrupt particije
-    //     * - Concurrent pristup
+    //     * - Concurrent pristup aka async da bi se smanjilo opterecejn jenog threada
     //     */
 
 
