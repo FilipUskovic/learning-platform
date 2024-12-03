@@ -42,6 +42,7 @@ dependencies {
     implementation ("com.github.ben-manes.caffeine:caffeine")
     // Ovisnost za Redis
     implementation ("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-hateoas")
 
     /* kasnije cu korsiti
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -53,6 +54,9 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // rate limiter i bucket4j
+    implementation ("com.bucket4j:bucket4j-core:8.10.1")
+
     /* kasnije cu korsiti
 
     testImplementation("io.projectreactor:reactor-test")

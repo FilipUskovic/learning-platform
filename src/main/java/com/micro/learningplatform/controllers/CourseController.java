@@ -1,5 +1,7 @@
 package com.micro.learningplatform.controllers;
 
+import com.micro.learningplatform.api.CourseResource;
+import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.dto.CourseResponse;
 import com.micro.learningplatform.models.dto.CourseSearchRequest;
 import com.micro.learningplatform.models.dto.CreateCourseRequest;
@@ -46,6 +48,7 @@ public class CourseController {
             @Valid CourseSearchRequest request) {
         return ResponseEntity.ok(courseService.search(request));
     }
+
 
 
 }

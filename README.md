@@ -31,7 +31,7 @@ prometheus za centaliziran pracenej umjesto logirana []
 
 Eh107Configuration je cesto nepotreban kod moderne hibernate jcache-a (provjeiti) []
 
-dan 3 []
+dan 3 [x]
 napredni peristance layer [x]
 criteria api i dinamicki upiti [x]
 PostgreSQL tsvector [x]
@@ -40,6 +40,12 @@ jpa napredno [x]
 dodao redis kesiranje s coffeine [x]
 
 razmisliti jesam li malo pretjerao s peformancima i naprednim persisten znacajkama (vjv jesam  :) []
+
+dan 4 []
+verzioniranje api-a [x]
+intrecpeoti [x]
+dodati ratelimiter [x]
+dodati spring hateos te [x]
 
 Postaviti eureka servis []
 Razmisilit o GrallVM za native images []
