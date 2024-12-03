@@ -19,8 +19,10 @@ public class CriteraCourseRepositoryImpl implements CriteriaCourseRepository {
     private EntityManager entityManager;
 
 
+    //TODO razmotiriti o data specificationu
+
     /**
-     * Koristi dynamički SQL za fleksibilno filtriranje.
+     * Koristi criteria api za dinamicko krierianje SQL upita za fleksibilno filtriranje.
      * Izbjegavamo generiranje velikog broja sličnih metoda.
      */
 

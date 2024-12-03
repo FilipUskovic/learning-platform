@@ -8,7 +8,9 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 @Configuration
 public class RedisConfig {
 
-    //TODO: DODATI U COMPOSE docker redis
+    //TODO: DODATI U COMPOSE docker redis i dodati autentifikaciju za proizvodno okruzenje
+
+    // Omogucava redis kkao backend za distributivno kesiraje
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {

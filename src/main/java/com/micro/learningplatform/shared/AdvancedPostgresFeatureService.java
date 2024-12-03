@@ -17,6 +17,8 @@ public class AdvancedPostgresFeatureService {
      * - napredni indexi
      */
 
+    // TODO DODATI TEstove za validaciju kreiranja o ovisnostima i dokumentirati ovisnosti o postgresql znacajkama
+
     private final EntityManager entityManager;
 
 

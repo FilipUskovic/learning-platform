@@ -29,6 +29,7 @@ public class AdvancedCourseSearchService {
      * 1. znacajno brza od like jer korisi gin indeks
      * 2. implementira rangiranje rezultata
      * 3. podrzava slozene search upite
+     *
      */
 
 
