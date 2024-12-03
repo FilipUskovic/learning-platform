@@ -6,6 +6,7 @@ import com.micro.learningplatform.repositories.CourseRepository;
 import com.micro.learningplatform.shared.CourseMapper;
 import com.micro.learningplatform.shared.exceptions.CourseAlreadyExistsException;
 import com.micro.learningplatform.shared.exceptions.CourseNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,16 +17,12 @@ import java.util.UUID;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-
-    public CourseServiceImpl(CourseRepository courseRepository, ApplicationEventPublisher eventPublisher) {
-        this.courseRepository = courseRepository;
-        this.eventPublisher = eventPublisher;
-    }
 
 
     @Override

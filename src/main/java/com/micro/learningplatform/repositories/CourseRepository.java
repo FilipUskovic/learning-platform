@@ -2,7 +2,6 @@ package com.micro.learningplatform.repositories;
 
 import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.CourseStatus;
-import jakarta.persistence.Entity;
 import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,10 +22,7 @@ import static org.hibernate.jpa.HibernateHints.*;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
 
-   /* @Query("SELECT case when count (c) > 0 then true else false end " +
-            "from Course c where lower(c.title) = lower(:title) ")
-           @Param("title")
-    */
+
     boolean existsByTitleIgnoreCase(String title);
 
     @Query("SELECT c FROM Course c WHERE c.courseStatus = :status  ORDER BY c.createdAt DESC ")
@@ -81,6 +77,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     //TODO: razmisliti o koristenju criteria api-a ili queryDSL-a za lakšu dinamičku izradu upita
 
 
+    @Query("SELECT c FROM Course c")
     @QueryHints(value = {
             @QueryHint(name = HINT_FETCH_SIZE, value = "50"),
             @QueryHint(name = HINT_CACHEABLE, value = "true"),

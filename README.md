@@ -32,6 +32,13 @@ prometheus za centaliziran pracenej umjesto logirana []
 Eh107Configuration je cesto nepotreban kod moderne hibernate jcache-a (provjeiti) []
 
 dan 3 []
+napredni peristance layer [x]
+criteria api i dinamicki upiti [x]
+PostgreSQL tsvector [x]
+JPA Projekcije []
+jpa napredno []
+
+razmisliti jesam li malo pretjerao s peformancima i naprednim persisten znacajkama (vjv jesam  :) []
 
 Postaviti eureka servis []
 Razmisilit o GrallVM za native images []
@@ -66,6 +73,11 @@ korsiti cu oba pristupa iako povecava znatno slozenost  jer :
 -> koristi virtual threads za za pisanje jednostavnog sekvencionalnog koda gdje kod je moguce
 -> korsiti reactive pristup za specificne zahtijevne operacije  i rad s kafkom
 ->
+
+
+PostgreSQL tsvector :
+ -> implementiraju full text pretagu
+ -> brzi nego like pretrazvianja 
 
 
 echo "# learning-platform" >> README.md
