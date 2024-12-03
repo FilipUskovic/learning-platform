@@ -39,7 +39,9 @@ dependencies {
     implementation ("org.hibernate.orm:hibernate-jcache:6.6.2.Final")
     implementation ("org.ehcache:ehcache:3.10.8")
     implementation ("org.springframework.boot:spring-boot-starter-cache")
-   // implementation ("jakarta.cache:jakarta.cache-api:1.1.1")
+    implementation ("com.github.ben-manes.caffeine:caffeine")
+    // Ovisnost za Redis
+    implementation ("org.springframework.boot:spring-boot-starter-data-redis")
 
     /* kasnije cu korsiti
     implementation("org.springframework.boot:spring-boot-starter-webflux")

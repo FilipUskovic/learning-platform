@@ -35,8 +35,9 @@ dan 3 []
 napredni peristance layer [x]
 criteria api i dinamicki upiti [x]
 PostgreSQL tsvector [x]
-JPA Projekcije []
-jpa napredno []
+ razimislit gdje je potrbena JPA Projekcije []
+jpa napredno [x]
+dodao redis kesiranje s coffeine [x]
 
 razmisliti jesam li malo pretjerao s peformancima i naprednim persisten znacajkama (vjv jesam  :) []
 
@@ -99,6 +100,9 @@ git push -u origin main
 
 *
 
+
+dodao redis i coffeince za 1 i 2 lazer kesiranja dodao optimizacije dinamciki criterije s criterije builder jpa proekcije 
+ ze indexe i metrcie te pracenje svega razmisilit o tome da maknem nesto vjv ima viska kad budem dosao do toga 
 
 
 ### Reference Documentation
