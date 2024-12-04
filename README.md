@@ -47,6 +47,12 @@ intrecpeoti [x]
 dodati ratelimiter [x]
 dodati spring hateos te [x]
 
+
+dan 5 
+TODO ispraviti i poboljsati visak ili dupli kod []
+centralizirati []
+pojednostaviti []
+
 Postaviti eureka servis []
 Razmisilit o GrallVM za native images []
 Implementirati kafka za event streamanje []

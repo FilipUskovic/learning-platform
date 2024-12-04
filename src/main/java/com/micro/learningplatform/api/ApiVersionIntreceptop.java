@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,9 +41,12 @@ public class ApiVersionIntreceptop implements HandlerInterceptor {
 
     //TODO UnsupportedApiVersionException doati ovu excepton
     private void validateApiVersion(String requestedVersion) {
-        if (!VERSION_PATTERN.matcher(requestedVersion).matches()) {
-            throw new IllegalArgumentException(
-                    "API version " + requestedVersion + " is not supported");
+        // Podržane verzije
+        List<String> supportedVersions = List.of("v1", "v2");
+
+        // Provjera podržane verzije
+        if (!supportedVersions.contains(requestedVersion)) {
+            throw new IllegalArgumentException("API version " + requestedVersion + " is not supported");
         }
     }
 

@@ -1,7 +1,6 @@
 package com.micro.learningplatform.repositories;
 
 import com.micro.learningplatform.models.dto.CourseBatchDTO;
-import com.micro.learningplatform.models.dto.CourseResponse;
 import com.micro.learningplatform.shared.SearchCriteria;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

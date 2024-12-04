@@ -34,6 +34,7 @@ spring:
         generate_statistics: true
 
 
+
   flyway:
     enabled: false
     baseline-on-migrate: false
@@ -51,3 +52,8 @@ spring:
       enabled: true
 
 
+logging:
+  level:
+    root: INFO
+    com.micro.learningplatform.shared.performace.QueryPlan: DEBUG
+    com.micro.learningplatform.shared.performace.UnifiedQueryAnalyzer: DEBUG

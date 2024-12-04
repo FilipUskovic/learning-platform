@@ -56,7 +56,7 @@ public class Course extends BaseModel{
 
     // Private konstruktor za factory metodu
     private Course(String title, String description) {
-        this.Id = UUID.randomUUID();
+     //   this.Id = UUID.randomUUID();
         this.title = title;
         this.description = description;
         this.courseStatus = CourseStatus.DRAFT;

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+/* Ista prica i za ovu metodu
 @Aspect
 @Component
 @Slf4j
@@ -17,7 +18,7 @@ public class QueryPerformanceAspect {
     /*  Pratimo vrijeme izvrsavanja svakog upita i idencificiranje sporih
         Korištenje AOP-a (ascpect orientet programing) za praćenje vremena izvršavanja metoda označenih posebnom anotacijom
         globalno praćenje performansi bez promjena u kodu
-     */
+
 
 
     @Around("@annotation(QueryPerformance)")
@@ -41,3 +42,4 @@ public class QueryPerformanceAspect {
 
     }
 }
+*/

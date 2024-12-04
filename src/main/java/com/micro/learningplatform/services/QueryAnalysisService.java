@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/* Ne treba mi vise ova metoda jer korisitm UnifiedQueryAnalizer koja ima centralno upravljanje i nema duplikata
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class QueryAnalysisService {
     /* Analiza performansi upita s preporukama za optimizaciju i Statistike za donošenje odluka o optimizaciji
       - > Analiziranje upita pomoću Hibernate statistike i generiranje preporuka za optimizaciju
       ->
-     */
+
 
     //TODO: DODATI npr prometheus za centaliziran pracenej umjesto logirana
 
@@ -70,3 +70,4 @@ public class QueryAnalysisService {
     }
 
 }
+*/

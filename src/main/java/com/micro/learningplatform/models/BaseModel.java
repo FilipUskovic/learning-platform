@@ -27,6 +27,7 @@ public abstract class BaseModel {
     private LocalDateTime updatedAt;
 
     @Version
+    @Column(name = "version", nullable = false)
     private Long version;
 
     protected BaseModel() {}

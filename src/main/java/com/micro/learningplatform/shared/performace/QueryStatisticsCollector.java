@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/*  Ne treba mi ova metoda vise jer sam kreirao UnifiedQueryAnalizer koji ima centralno upravljanje
 @Service
 @Slf4j
 public class QueryStatisticsCollector {
 
   /* Analiza trentova u performancsama i automatsko upozoravanje na degradaciju performansi
 
-   */
 
     private static final Map<String, List<QueryExecution>> queryStatistics =
             new ConcurrentHashMap<>();
@@ -43,7 +43,7 @@ public class QueryStatisticsCollector {
                 .average()
                 .orElse(0.0);
 
-        // Ako je prosječno vrijeme iznad praga, šaljemo upozorenje
+         Ako je prosječno vrijeme iznad praga, šaljemo upozorenje
             if(avgTime > 1000) { // više od 1 sekunde
                 log.warn("Performance degradation detected for query: {}. " +
                         "Average execution time: {} ms", queryName, avgTime);
@@ -61,3 +61,4 @@ public class QueryStatisticsCollector {
 
 
     }
+    */
