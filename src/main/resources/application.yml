@@ -9,10 +9,22 @@ spring:
       password: ${DB_PASSWORD:learning_platform}
       # dodatna optimizacija baze
       hikari:
+        driver-class-name: org.postgresql.Driver
         maximum-pool-size: 10
         minimum-idle: 5
         idle-timeout: 300000 # 5 min
-        driver-class-name: org.postgresql.Driver
+        connection-timeout: 20000
+        max-lifetime: 1200000 # 20 minuta
+        auto-commit: false
+        pool-name: LearningPlatformPool
+        # Health check query
+        connection-test-query: "SELECT 1"
+        validation-timeout: 5000 # 5 sekundi
+        # Leak detection
+        leak-detection-threshold: 60000 # 1 minuta
+        # Register metrics
+        register-mbeans: true
+
 
   jpa:
     hibernate:
@@ -21,39 +33,165 @@ spring:
     properties:
       hibernate:
         open-in-view: false # Važno za performanse i izbjegavanje LazyInitializationException
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+          # SQL formatting i statistika
+        generate_statistics: true
+        show-sql: false # Logiramo kroz logger umjesto stdout
 
         # sencond level hibernate chache
         cache:
           use_second_level_cache: true
+          use_query_cache: true
           region:
           factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
         jcache:
           provider: org.ehcache.jsr107.EhcacheCachingProvider
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        generate_statistics: true
+          missing_cache_strategy: create
 
+        # Batch processing optimizacije
+        jdbc:
+          batch_size: 50
+          batch_versioned_data: true
+          order_inserts: true
+          order_updates: true
 
+          # Query optimizacije
+        query:
+          in_clause_parameter_padding: true
+          fail_on_pagination_over_collection_fetch: true
+          plan_cache_max_size: 2048
+
+      # Connection pool optimizacije
+        connection:
+          provider_disables_autocommit: true
+        # Statement caching
+        statement_cache:
+          size: 200
+      # Fetch size za velike rezultate
+        default_batch_fetch_size: 100
+
+      # Search optimizacij
+        search:
+          enabled: true
+          backend:
+            type: lucene
+            directory:
+              root: ${user.home}/learning-platform-indexes
 
   flyway:
     enabled: false
     baseline-on-migrate: false
     locations: classpath:db/migration
+    table: flyway_schema_history
+    #baseline-version: 0
+    #validate-on-migrate: true
+    #clean-disabled: true # Sigurnosna mjera za produkciju
+    #placeholders:
+      #schema: public
+    #connect-retries: 3
+    #connect-retries-interval: 10
+    #init-sqls: # SQL koji se izvršava pri inicijalizaciji konekcije
+        #- SET timezone = 'UTC'
 
+  # Asinkrone operacije i Virtual Threads
   task:
     execution:
       pool:
         # Konfiguracija Virtual Threads
         core-size: 1 # Za virtual threads, dovoljan je 1 carrier thread
+        max-size: 16
         queue-capacity: 100000
+        keep-alive: 60s
       thread-name-prefix: learning-platform-
+    scheduling:
+      pool:
+        size: 5
   threads:
     virtual:
       enabled: true
 
+   # Cache konfiguracija
+  cache:
+    type: caffeine
+    cache-names:
+      - courses
+      - modules
+      - search-results
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=30m
+    redis:
+      time-to-live: 1h
+      key-prefix: learning-platform
 
+  # Metrike i monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,cache,flyway
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    enable:
+      jvm: true
+      process: true
+      system: true
+      hikaricp: true
+  health:
+    db:
+      enabled: true
+    redis:
+     enabled: true
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+
+
+
+# Logging konfiguracija
 logging:
   level:
     root: INFO
-    com.micro.learningplatform.shared.performace.QueryPlan: DEBUG
-    com.micro.learningplatform.shared.performace.UnifiedQueryAnalyzer: DEBUG
+    com.micro.learningplatform: DEBUG
+    org.hibernate:
+      SQL: DEBUG
+      type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.cache: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+    min-response-size: 1024
+  http2:
+    enabled: true
+  error:
+    include-message: always
+    include-binding-errors: always
+  tomcat:
+    max-connections: 10000
+    accept-count: 100
+    threads:
+      max: 200
+      min-spare: 10
+
+# API konfiguracija
+#api:
+  #version: 1.0
+  #rate-limit:
+    #enabled: true
+    #capacity: 100
+    #time-window: 1h
+  #cors:
+    #allowed-origins: "*"
+    #allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    #allowed-headers: "*"
+    #max-age: 3600
+

@@ -2,6 +2,7 @@ package com.micro.learningplatform.shared.performace;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.micro.learningplatform.shared.analiza.PlanAnalysis;
 import com.micro.learningplatform.shared.exceptions.QueryPlanParseException;
 import com.micro.learningplatform.shared.exceptions.QueryValidationParseException;
 
@@ -14,12 +15,34 @@ public record QueryPlan(
         double totalCost,
         double actualTime,
         List<String> tables,
-        Map<String, String> scanTypes
+        Map<String, String> scanTypes,
+        long estimatedRows
 ) {
 
 
     private static final String NODE_TYPE = "Node Type";
     private static final String RELATION_NAME = "Relation Name";
+    private static final String PLAN_ROWS = "Plan Rows"; // Ključ za procijenjene retke
+    private static final String COMMAND_TYPE = "Command Type";
+    private static final Set<String> MODIFYING_COMMANDS = Set.of("INSERT", "UPDATE", "DELETE", "MERGE");
+
+
+    public boolean isModifyingQuery() {
+        String commandType = Optional.ofNullable(planNode.findPath(COMMAND_TYPE).asText())
+                .filter(s -> !s.isEmpty())
+                .orElse("");
+
+        if (!commandType.isEmpty()) {
+            return MODIFYING_COMMANDS.contains(commandType.toUpperCase());
+        }
+
+        return planNode.findValues(NODE_TYPE).stream()
+                .map(JsonNode::asText)
+                .anyMatch(nodeType ->
+                        nodeType.contains("Update") || nodeType.contains("Insert")
+                                || nodeType.contains("Delete") || nodeType.contains("Modify"));
+    }
+
 
 
     public boolean hasSequenceScan() {
@@ -64,12 +87,14 @@ public record QueryPlan(
 
             double totalCost = planNode.findPath("Total Cost").asDouble();
             double actualTime = planNode.findPath("Actual Total Time").asDouble();
+            long estimatedRows = planNode.has(PLAN_ROWS) ? planNode.get(PLAN_ROWS).asLong() : 0L;
+
 
             Map<String, String> scanTypes = new HashMap<>();
             List<String> tables = extractTablesAndScansWithStreams(planNode, scanTypes);
 
 
-            return new QueryPlan(planNode, totalCost, actualTime, tables, scanTypes);
+            return new QueryPlan(planNode, totalCost, actualTime, tables, scanTypes, estimatedRows);
         } catch (Exception e) {
             throw new QueryPlanParseException("Failed to parse query plan", e);
         }
@@ -105,4 +130,21 @@ public record QueryPlan(
                         .distinct().toList();
     }
 
+    public PlanAnalysis analyzePlan() {
+        return PlanAnalysis.builder()
+                .totalCost(totalCost)
+                .actualTime(actualTime)
+                .estimatedRows(estimatedRows)
+                .tablesInvolved(tables)
+                .hasSequentialScans(hasSequenceScan())
+                .hasNestedLoops(hasNestedLoops())
+                .isModifyingQuery(isModifyingQuery())
+                .scanTypes(new HashMap<>(scanTypes))
+                .build();
+    }
+
+
+    public int estimatedCost() {
+        return (int) totalCost;
+    }
 }
