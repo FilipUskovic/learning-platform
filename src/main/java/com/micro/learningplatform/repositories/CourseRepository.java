@@ -12,12 +12,10 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.hibernate.jpa.HibernateHints.*;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
@@ -25,85 +23,40 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     boolean existsByTitleIgnoreCase(String title);
 
-    @Query("SELECT c FROM Course c WHERE c.courseStatus = :status  ORDER BY c.createdAt DESC ")
-    Page<Course> findByStatus(
-            @Param("status") CourseStatus status, Pageable pageable
-    );
+    @Query("SELECT c FROM Course c WHERE c.courseStatus = :status ORDER BY c.createdAt DESC")
+    Page<Course> findByStatus(@Param("status") CourseStatus status, Pageable pageable);
 
     @Query("""
-        SELECT c FROM Course c\s
-        WHERE LOWER(c.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))\s
+        SELECT c FROM Course c
+        WHERE LOWER(c.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
         OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-       \s""")
-    Page<Course> searchCourses(
-            @Param("searchTerm") String searchTerm, Pageable pageable
-    );
+        """)
+    Page<Course> searchCourses(@Param("searchTerm") String searchTerm, Pageable pageable);
 
- @Query("""
-        SELECT c FROM Course c\s
-        WHERE (:status IS NULL OR c.courseStatus = :status)\s
-        AND (:searchTerm IS NULL\s
-             OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-             OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))
-       \s""")
-    Page<Course> advanceSearchCourses(@Param("searchTerm") String searchTerm,
-                                      @Param("status") CourseStatus status,
-                                      Pageable pageable);
-
-   //TODO provjeriti dali mi trebaju ove dolje metode posto koristi batch s entetymanagerom
-
-
-    /* Entety graph pomaze rijesavanju problema n+1 upitima
-     ->   Entity graph je nacin za definiranje "eager" ucitavanja specificnih asocijacija
-     -> jeft join fetch rijesava potencijonalni n + 1 problem
-     */
     @EntityGraph(attributePaths = {"modules"})
     Optional<Course> findWithModulesById(UUID id);
 
-    // ovo je second level kesiranje
-    @QueryHints({
-            @QueryHint(name = HINT_CACHEABLE, value = "true"),
-            @QueryHint(name = HINT_CACHE_REGION, value = "course.search")
-    })
     @Query("""
         SELECT c FROM Course c
         WHERE c.courseStatus = :status
         ORDER BY c.createdAt DESC
         """)
+    @QueryHints({
+            @QueryHint(name = "org.hibernate.cacheable", value = "true"),
+            @QueryHint(name = "org.hibernate.cacheRegion", value = "course.search")
+    })
     List<Course> findByStatus(@Param("status") CourseStatus status);
 
-    // Hintovi poboljsavaju ucinkovitos posebno kod velikih upita
-    // koristim query hints hibernatov hintove za kesiranje
-    //TODO: razmisliti o koristenju criteria api-a ili queryDSL-a za lakšu dinamičku izradu upita
 
-
-    @Query("SELECT c FROM Course c")
-    @QueryHints(value = {
-            @QueryHint(name = HINT_FETCH_SIZE, value = "50"),
-            @QueryHint(name = HINT_CACHEABLE, value = "true"),
-            @QueryHint(name = HINT_CACHE_REGION, value = "course.list"),
-            @QueryHint(name = "org.hibernate.comment", value = "Custom hint for monitoring")
-    })
-    List<Course> findAllWithOptimization();
-
-
-
-    /*
-       -> Natvie sql omogucuje optimizaciju koristeci indexne baze podatka
-       -> Pogotodan za slozene uvjete pretrage
-     */
-    @Query(value = """
-        SELECT c.* FROM courses c
-        WHERE c.course_status = :status
-        AND EXISTS (
-            SELECT 1 FROM course_modules m
-            WHERE m.course_id = c.id
-            AND m.duration <= :maxDuration
-        )
-        """, nativeQuery = true)
-    List<Course> findCoursesWithModulesUnderDuration(
-            @Param("status") String status,
-            @Param("maxDuration") Duration maxDuration
-    );
+    @Query("""
+        SELECT c FROM Course c
+        WHERE (:status IS NULL OR c.courseStatus = :status)
+        AND (:searchTerm IS NULL
+             OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+             OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))
+        """)
+    Page<Course> advanceSearchCourses(@Param("searchTerm") String searchTerm,
+                                      @Param("status") CourseStatus status,
+                                      Pageable pageable);
 
 }
