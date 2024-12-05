@@ -1,4 +1,4 @@
-package com.micro.learningplatform.services;
+package com.micro.learningplatform.partitons;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
