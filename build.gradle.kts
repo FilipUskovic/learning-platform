@@ -57,6 +57,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     // rate limiter i bucket4j
     implementation ("com.bucket4j:bucket4j-core:8.10.1")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     /* kasnije cu korsiti
 

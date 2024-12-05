@@ -129,11 +129,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus,cache,flyway
+        include: health,metrics,prometheus,cache,flyway, prometheus
   metrics:
+
     tags:
       application: ${spring.application.name}
     enable:
+      cache: true
       jvm: true
       process: true
       system: true
@@ -148,6 +150,12 @@ management:
       show-details: always
       probes:
         enabled: true
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 
 
 
