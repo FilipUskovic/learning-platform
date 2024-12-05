@@ -1,15 +1,12 @@
 package com.micro.learningplatform.controllers;
 
-import com.micro.learningplatform.api.CourseResource;
-import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.dto.*;
 import com.micro.learningplatform.services.CourseService;
-import com.micro.learningplatform.shared.ValidationUtils;
+import com.micro.learningplatform.shared.utils.ValidationUtils;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.Parameter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;

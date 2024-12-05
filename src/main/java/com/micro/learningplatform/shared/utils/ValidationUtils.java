@@ -1,4 +1,4 @@
-package com.micro.learningplatform.shared;
+package com.micro.learningplatform.shared.utils;
 
 import com.micro.learningplatform.models.CourseStatus;
 import lombok.experimental.UtilityClass;

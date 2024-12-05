@@ -7,7 +7,6 @@ import org.springframework.hateoas.Link;
 import java.util.UUID;
 
 public class CourseResource extends ResourceSupport{
-
     // Reprezentacija kursa s HATEOAS podrškom.
 
     private final UUID id;

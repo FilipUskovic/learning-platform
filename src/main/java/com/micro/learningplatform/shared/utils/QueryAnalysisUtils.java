@@ -1,4 +1,4 @@
-package com.micro.learningplatform.shared.analiza;
+package com.micro.learningplatform.shared.utils;
 
 import com.micro.learningplatform.shared.performace.PerformanceDistribution;
 import lombok.experimental.UtilityClass;

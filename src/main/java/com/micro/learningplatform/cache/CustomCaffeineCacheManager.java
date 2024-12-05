@@ -1,4 +1,4 @@
-package com.micro.learningplatform.config;
+package com.micro.learningplatform.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.Cache;

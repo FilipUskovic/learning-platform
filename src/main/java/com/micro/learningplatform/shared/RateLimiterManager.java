@@ -2,7 +2,6 @@ package com.micro.learningplatform.shared;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

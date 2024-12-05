@@ -1,6 +1,6 @@
 package com.micro.learningplatform.shared.analiza;
 
-import com.micro.learningplatform.config.MonitoredCache;
+import com.micro.learningplatform.cache.MonitoredCache;
 import com.micro.learningplatform.services.CacheMetricsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;

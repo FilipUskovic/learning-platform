@@ -1,4 +1,4 @@
-package com.micro.learningplatform.shared;
+package com.micro.learningplatform.services;
 
 import com.micro.learningplatform.models.Course;
 import jakarta.persistence.EntityManager;

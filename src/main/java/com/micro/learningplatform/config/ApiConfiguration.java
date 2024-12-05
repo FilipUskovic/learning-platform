@@ -1,7 +1,7 @@
 package com.micro.learningplatform.config;
 
-import com.micro.learningplatform.api.ApiVersionIntreceptop;
-import com.micro.learningplatform.api.RateLimitInterceptor;
+import com.micro.learningplatform.interceptors.ApiVersionIntreceptop;
+import com.micro.learningplatform.interceptors.RateLimitInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;

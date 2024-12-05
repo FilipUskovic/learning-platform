@@ -12,7 +12,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
 public class CoursePartitionManager {
 
     // svrha ove klase je odrzavanje stvaranje i odrzavanje particija u bazi podatka ua course entiet

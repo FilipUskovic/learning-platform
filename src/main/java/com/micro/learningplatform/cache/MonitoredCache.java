@@ -1,7 +1,6 @@
-package com.micro.learningplatform.config;
+package com.micro.learningplatform.cache;
 
 import com.micro.learningplatform.services.CacheMetricsService;
-import io.micrometer.common.lang.Nullable;
 import org.springframework.cache.Cache;
 
 import java.util.concurrent.Callable;

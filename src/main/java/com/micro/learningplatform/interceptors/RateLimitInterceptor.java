@@ -1,4 +1,4 @@
-package com.micro.learningplatform.api;
+package com.micro.learningplatform.interceptors;
 
 import com.micro.learningplatform.shared.RateLimiterManager;
 import com.micro.learningplatform.shared.exceptions.RateLimitExceededException;

@@ -44,6 +44,7 @@ dependencies {
     implementation ("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-hateoas")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
+    implementation ("com.google.guava:guava:32.1.2-jre")
 
     /* kasnije cu korsiti
     implementation("org.springframework.boot:spring-boot-starter-webflux")

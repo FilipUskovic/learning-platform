@@ -1,7 +1,7 @@
 package com.micro.learningplatform.shared.performace;
 
 import com.micro.learningplatform.shared.analiza.QueryAnalysisResultBuilder;
-import com.micro.learningplatform.shared.analiza.QueryAnalysisUtils;
+import com.micro.learningplatform.shared.utils.QueryAnalysisUtils;
 import com.micro.learningplatform.shared.exceptions.QueryExecutionException;
 import com.micro.learningplatform.shared.exceptions.QueryPlanParseException;
 import io.micrometer.core.instrument.MeterRegistry;

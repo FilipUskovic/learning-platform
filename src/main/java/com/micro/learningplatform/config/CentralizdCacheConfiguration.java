@@ -1,11 +1,11 @@
-package com.micro.learningplatform.api;
+package com.micro.learningplatform.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.micro.learningplatform.config.CacheSpec;
-import com.micro.learningplatform.config.CustomCaffeineCacheManager;
+import com.micro.learningplatform.cache.CacheSpec;
+import com.micro.learningplatform.cache.CustomCaffeineCacheManager;
 import com.micro.learningplatform.services.CacheMetricsService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
