@@ -26,7 +26,7 @@ dodati i razmislit trebaju mi pracenej perofrmanci [x]
 isto tako treba li mi second level kseiranje [x]
 dodao particioniranje [x]
 provjeriti dan 2 ponovno []
-prometheus za centaliziran pracenej umjesto logirana []
+prometheus za centaliziran pracenej umjesto logirana [x]
 
 
 Eh107Configuration je cesto nepotreban kod moderne hibernate jcache-a (provjeiti) []
@@ -49,13 +49,15 @@ dodati spring hateos te [x]
 
 
 dan 5 
-TODO ispraviti i poboljsati visak ili dupli kod []
-centralizirati []
-pojednostaviti []
+TODO ispraviti i poboljsati visak ili dupli kod [x]
+centralizirati [x]
+pojednostaviti [x]
+
+dan 6 jos jednomo opeimizirati prva 4 dana maknuti unused inport itd []
 
 Postaviti eureka servis []
 Razmisilit o GrallVM za native images []
-Implementirati kafka za event streamanje []
+Implementirati kafka za event streamanje [x]
 Implementirati redis za kesiranje []
 Dodati Produkciski sloj i env file []
 Kasnije dodati virtuhal threads i reactive approcah []
