@@ -42,8 +42,8 @@ public class PartitionMigrationService {
                 // Provjera postoji li tablica
                 Query query = entityManager.createNativeQuery(
                         """
-                        SELECT COUNT(*) 
-                        FROM information_schema.tables 
+                        SELECT COUNT(*)
+                        FROM information_schema.tables
                         WHERE table_name = :tableName
                         """
                 );

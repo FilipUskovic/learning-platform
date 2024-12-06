@@ -2,6 +2,47 @@ spring:
   application:
     name: learning-platform
 
+    # kafka
+  kafka:
+    bootstrap-servers: localhost:29092 # Kafka broker adresa
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all # Potvrda svih replika za maksimalnu sigurnost
+      retries: 3
+      batch-size: 16384 # 16KB
+      buffer-memory: 33554432 # 32MB
+      properties:
+        max.request.size: 2097152 # 2MB
+    consumer:
+      group-id: learning-platform-group # Grupni ID za potrošače
+      auto-offset-reset: earliest # Uvijek čitajte od najstarijeg offseta
+      enable-auto-commit: false # Ručno upravljanje offsetima
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 500
+      properties:
+        max.partition.fetch.bytes: 2097152 # 2MB
+    listener:
+      missing-topics-fatal: false # Izbjegavanje fatalnih grešaka zbog nedostajućih tema
+      ack-mode: record # Potvrđuje offset nakon obrade svakog zapisa
+    admin:
+      properties:
+        retry.backoff.ms: 500
+        linger.ms: 10
+        request.timeout.ms: 30000
+      security:
+        protocol: PLAINTEXT # Koristi nekriptiranu vezu (za lokalni razvoj)
+    template:
+      default-topic: default-topic # Postavljanje zadane teme
+    topics:
+      course-events: course-events
+      dead-letter: course-events-dlq
+      retry-count: 3
+      retry-backoff-ms: 1000
+
+
+
 
   datasource:
       url: jdbc:postgresql://localhost:5432/learning_platform
@@ -131,10 +172,10 @@ management:
       exposure:
         include: health,metrics,prometheus,cache,flyway, prometheus
   metrics:
-
     tags:
       application: ${spring.application.name}
     enable:
+      kafka: true
       cache: true
       jvm: true
       process: true
@@ -144,21 +185,17 @@ management:
     db:
       enabled: true
     redis:
-     enabled: true
+      enabled: true
   endpoint:
     health:
       show-details: always
-      probes:
-        enabled: true
-
+     # kubernetes ne korsitim jos
+      #probes:
+        #enabled: true
   prometheus:
     metrics:
       export:
         enabled: true
-
-
-
-
 
 # Logging konfiguracija
 logging:

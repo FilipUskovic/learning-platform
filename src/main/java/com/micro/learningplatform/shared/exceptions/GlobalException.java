@@ -1,19 +1,29 @@
 package com.micro.learningplatform.shared.exceptions;
 
 import com.micro.learningplatform.shared.validation.ValidationErrorResponse;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.zalando.problem.Problem;
 
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.zalando.problem.Status.BAD_REQUEST;
+
 @ControllerAdvice
+@RequiredArgsConstructor
 public class GlobalException extends ResponseEntityExceptionHandler {
+
+    private final MeterRegistry meterRegistry;
+
 
 
     @ExceptionHandler(CourseNotFoundException.class)
@@ -66,6 +76,29 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         );
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+
+    // events
+
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<Problem> handleDomainException(DomainException ex, WebRequest request) {
+        recordError(ex);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Problem.builder()
+                        .withTitle("Domain Error")
+                        .withStatus(BAD_REQUEST)
+                        .withDetail(ex.getMessage())
+                        .withInstance(URI.create(request.getContextPath()))
+                        .build());
+    }
+
+    private void recordError(Exception ex) {
+        meterRegistry.counter("application.error",
+                        "type", ex.getClass().getSimpleName(),
+                        "message", ex.getMessage())
+                .increment();
     }
 
 }

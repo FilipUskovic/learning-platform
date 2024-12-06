@@ -45,9 +45,16 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-hateoas")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation ("com.google.guava:guava:32.1.2-jre")
-  //  implementation("org.springframework.kafka:spring-kafka")
-   // implementation("org.apache.kafka:kafka-streams")
-   // testImplementation("org.springframework.kafka:spring-kafka-test")
+    implementation("org.springframework.kafka:spring-kafka")
+
+   // implementation("io.micrometer:micrometer-registry-kafka:1.11.3")
+
+    implementation ("org.zalando:problem-spring-web:0.27.0")
+
+    // implementation("org.apache.kafka:kafka-streams")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
+
+
 
     /* kasnije cu korsiti
     implementation("org.springframework.boot:spring-boot-starter-webflux")
