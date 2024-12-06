@@ -2,6 +2,7 @@ package com.micro.learningplatform.shared.exceptions;
 
 import com.micro.learningplatform.shared.validation.ValidationErrorResponse;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
 import org.springframework.http.*;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.zalando.problem.Status.BAD_REQUEST;
@@ -100,5 +103,31 @@ public class GlobalException extends ResponseEntityExceptionHandler {
                         "message", ex.getMessage())
                 .increment();
     }
+
+    // validation
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Problem> handleValidation(
+            ValidationException ex,
+            WebRequest request) {
+
+        ValidationErrorResponse error = new ValidationErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                Collections.singletonList(ex.getMessage()),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .badRequest()
+                .body(Problem.builder()
+                        .withStatus(Status.BAD_REQUEST)
+                        .withTitle("Validation Error")
+                        .withDetail(ex.getMessage())
+                        .withInstance(URI.create(request.getDescription(false)))
+                        .with("errors", error.getViolations())
+                        .build());
+    }
+
 
 }

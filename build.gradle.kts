@@ -54,6 +54,9 @@ dependencies {
     // implementation("org.apache.kafka:kafka-streams")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
+    // swager 3 tj opeapi
+    implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
+
 
 
     /* kasnije cu korsiti

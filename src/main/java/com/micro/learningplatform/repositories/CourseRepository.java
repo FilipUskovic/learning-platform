@@ -59,4 +59,27 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                                       @Param("status") CourseStatus status,
                                       Pageable pageable);
 
+
+    // dodajem indexke 
+    @Query(value = """
+        SELECT c FROM Course c
+        WHERE c.courseStatus = :status
+        ORDER BY c.createdAt DESC
+        """)
+    @QueryHints(@QueryHint(name = "org.hibernate.comment",
+            value = "Using idx_courses_status_created"))
+    List<Course> findByStatusOrderByCreatedAt(@Param("status") CourseStatus status);
+
+    // Dodajemo podršku za idx_course_category_level
+    @Query(value = """
+        SELECT c FROM Course c
+        WHERE c.category = :category
+        AND c.difficultyLevel = :level
+        """)
+    @QueryHints(@QueryHint(name = "org.hibernate.comment",
+            value = "Using idx_course_category_level"))
+    List<Course> findByCategoryAndDifficultyLevel(
+            @Param("category") String category,
+            @Param("level") String level);
+
 }
