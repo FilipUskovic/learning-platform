@@ -39,21 +39,26 @@ PostgreSQL tsvector [x]
 jpa napredno [x]
 dodao redis kesiranje s coffeine [x]
 
-razmisliti jesam li malo pretjerao s peformancima i naprednim persisten znacajkama (vjv jesam  :) []
+razmisliti jesam li malo pretjerao s peformancima i naprednim persisten znacajkama (vjv jesam  :) [y]
 
-dan 4 []
+dan 4 [y]
 verzioniranje api-a [x]
 intrecpeoti [x]
 dodati ratelimiter [x]
 dodati spring hateos te [x]
 
 
-dan 5 
+dan 5 [x]
 TODO ispraviti i poboljsati visak ili dupli kod [x]
 centralizirati [x]
 pojednostaviti [x]
 
-dan 6 jos jednomo opeimizirati prva 4 dana maknuti unused inport itd []
+dan 6 jos jednomo opeimizirati prva 4 dana maknuti unused inport itd [x]
+optimizacija koda jos jednom [] (primjetio sam da imam duplikate negdje i da se neke metode mogu maknuti i neke klase rastavi)
+dodati poboljsanja za otimizaciju i metrike []
+provjeriti pratim li moderne tehnike  svugjde []
+optimizaciaj repository i servisa []
+poboljsati kratko ratelimiter []
 
 Postaviti eureka servis []
 Razmisilit o GrallVM za native images []
@@ -112,7 +117,53 @@ git push -u origin main
   -> bolje performance vs maven i ima incremental build
   -> vec spomenuto fleksibilnija strukutra i dinamicki dependecije
 
-*
+- Misli i objasnjejna
+
+Arhitektura se temelji na modularnom dizajnu koji ce implementirai DDD "domain driven arch" te ce se sastojati od nekoliok kljucnih slojeva
+
+ Domenki sloj -> mozemo reci da prestavlja srce sustava 
+
+ * Course entitet djelu kao agregat root koja implementira domensku logiku
+
+ Event sustav implementira event driven arhc koja omogcava labavo povezanosti izmedu komponenti 
+ 
+ * npr svaki zasebni događaj poput kreacije ili objave je zasbeni event objekt koji nasljeduje baseEvent klase a moja CourseEventHandler ih
+    osluskije i reagira na njih
+
+ Inrfastrukturni sloj ukratko sloj koji veliku pažnju daje na performance i skalabilnost s npr klasa koje sam vec implementirao kao CentralizedCacheConfiguration 
+
+* kombiniraj 2 layer kes sloj lokalni caffeine ili ti in memory i redis distubituvni te strategije kesiranja dekoratora MonitoredCache klase koj dodaje metrike
+  bez narusavanja performansi (nadam se)
+
+servisni sloj ce implemenitrati klasika poslovnu logiku uz optimalnu upravljanje resurisima baze podatka i robustan sustav rukavanje greskama
+
+ * npr imam partitionMigrationService tu koji ce upravljati efikasno velikom kolicniom podatka kroz particioniranje tabliva
+
+ Api sloj implementira Rest principe s verzioniranje i dokimentacijom uz korsitenje DTO objekta za transfer podakta 
+
+ * npr tu imamo ratelimiter koji stiti api od prepoterecenja
+
+ Sustav za napredne tehnikce kao npr full text search oslanavajuci se na postgresql featurse 
+
+ * ukratko pracenje i optimizacija performanski upita uz indeksiranje kes itd..
+
+ Konfiguracija Korsiti app yml za stukturirano hirearhiju te docker compose koji mi omogucuje konzistetno stanje za razvoj i prod
+
+ * tu se npr second-levle cache conncetion-pool za optimizacij ubaze i monotoring i sam dokcker compose s kafka redis i postgres servisima
+
+ Imam robusno rukovanje greskama na vise razina npr domenska iznimki do globalnog error hanldera 
+
+ * tu spada i validaciaj koje se isto kao i iznimke provodi na vise razina 
+
+ * Pokusao sam pratiti koliko god je moguce Solid prinicepe i dizajn pbrasci kao npr:
+
+ * Srv ili ti single responsibily princip - entiteti fokusirani samo na domenka pravila servisi na poslvona itd.
+ * OCP ili ti open/closed prinicple - koristenje abstrakciaj i sucelja koje omogucuje dodavanje novih izmjena bez postoječega koda
+ * LSP liskov - hirearhija ili ti pravila nasljedivanja base model entiet pruza zajednicko posnasnjae koje ostale klase porsiruju
+ * ISP interface segeration - repository interface su segmentirani prema funkionalnosti 
+ * DI dep injection - kroz construktore 
+ * Reatcie programing i asny uz virtual threads i kafku 
+
 
 
 dodao redis i coffeince za 1 i 2 lazer kesiranja dodao optimizacije dinamciki criterije s criterije builder jpa proekcije 

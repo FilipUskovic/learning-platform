@@ -107,6 +107,7 @@ public class CentralizdCacheConfiguration implements CachingConfigurer {
 
 
 
+
     //  distribuirani Redis cache s proper serijalizacijom i TTL strategijom
     private RedisCacheManager createDistributedCacheManager() {
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
