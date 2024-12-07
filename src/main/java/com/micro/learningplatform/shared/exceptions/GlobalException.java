@@ -4,7 +4,6 @@ import com.micro.learningplatform.shared.validation.ValidationErrorResponse;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;

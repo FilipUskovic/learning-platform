@@ -13,8 +13,6 @@ public class CourseCriteria {
     private String status;
     private String category;
 
-
-
     // dodao pomocne metode ako ce mi zatrebati
 
     public boolean hasStatus() {

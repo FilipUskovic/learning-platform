@@ -3,7 +3,6 @@ package com.micro.learningplatform.models.dto;
 import com.micro.learningplatform.batch.BatchItemError;
 import com.micro.learningplatform.batch.BatchProcessingSummary;
 import lombok.Getter;
-import lombok.Value;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

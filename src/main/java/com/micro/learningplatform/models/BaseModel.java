@@ -33,7 +33,6 @@ public abstract class BaseModel {
     private Long version;
 
     // dodajem nove fieldove
-
     @Column(name = "author_id")
     private UUID authorId;
 
