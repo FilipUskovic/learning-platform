@@ -1,10 +1,8 @@
 package com.micro.learningplatform.services;
 
+import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.CourseStatus;
-import com.micro.learningplatform.models.dto.CourseResponse;
-import com.micro.learningplatform.models.dto.CourseSearchRequest;
-import com.micro.learningplatform.models.dto.CourseSearchResult;
-import com.micro.learningplatform.models.dto.CreateCourseRequest;
+import com.micro.learningplatform.models.dto.*;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,4 +30,15 @@ public interface CourseService {
 
    void batchSaveCourses(List<CreateCourseRequest> requests) throws RepositoryException;
 
-    }
+    CourseStatisticsDTO getStatistics(UUID courseId);
+
+    CourseResponseWithModules getCourseWithModulesAndStatistics(UUID courseId);
+
+    void addModuleToCourse(UUID courseId, CreateModuleRequest request);
+
+    CourseResponseWithModules createWithModule(CreateCourseRequest createCourseRequest, List<CreateModuleRequest> moduleRequests);
+
+    void batchAddCourseWithModules(CreateCourseWithModulesRequest request);
+
+
+}

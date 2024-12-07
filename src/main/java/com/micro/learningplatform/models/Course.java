@@ -1,16 +1,17 @@
 package com.micro.learningplatform.models;
 
+import com.micro.learningplatform.event.DomainEvent;
 import com.micro.learningplatform.models.dto.CreateCourseRequest;
+import com.micro.learningplatform.shared.exceptions.CourseValidationException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cache;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "courses")
@@ -20,6 +21,8 @@ import java.util.UUID;
 //Secong level cache za smanjejne opterecenja baze
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Course extends BaseModel{
+    private static final int MINIMUM_MODULES_FOR_PUBLICATION = 1;
+    private static final Logger log = LogManager.getLogger(Course.class);
 
 
     @Id
@@ -38,7 +41,6 @@ public class Course extends BaseModel{
     @Column(nullable = false)
     private CourseStatus courseStatus;
 
-
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL,
             orphanRemoval = true)
     @OrderBy("sequenceNumber")
@@ -46,17 +48,19 @@ public class Course extends BaseModel{
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private List<CourseModule> modules = new ArrayList<>();
 
+    @Embedded
+    private CourseStatistics statistics;
 
-
+    // zelim da statisitka uvijek postoji
     protected Course() {
-      //  super(); // pozivamo konstrukt s bazne klase
+        this.statistics = new CourseStatistics();
     }
 
     //TODO: ostaviti samo osnovnu domensku logiku, ostalo premjesiti prema ddd prinicipma
 
     // Private konstruktor za factory metodu
     private Course(String title, String description) {
-     //   this.Id = UUID.randomUUID();
+        this(); // da bi se cons za incijijalizaciju tecaja pravilno pozvao
         this.title = title;
         this.description = description;
         this.courseStatus = CourseStatus.DRAFT;
@@ -70,26 +74,34 @@ public class Course extends BaseModel{
     // Domenski važne metode ostaju u entitetu
 
     public void addModule(CourseModule courseModule){
+        log.info("Adding module to course: {}", this.Id);
         validateModuleAddition(courseModule);
-        modules.add(courseModule);
+        log.info("Validation passed for module: {}", courseModule);
+
         courseModule.setCourse(this);
+        modules.add(courseModule);
+        log.info("Module added to course. Total modules: {}", this.modules.size());
+
+        statistics.recalculate(modules);
+
 
     }
 
-    public void publish(){
-        if(this.courseStatus != CourseStatus.DRAFT){
-            throw new IllegalStateException("TCourse can only be published from DRAFT state");
+
+    public void publish() {
+        if (!courseStatus.canTransitionTo(CourseStatus.PUBLISHED)) {
+            throw new IllegalStateException("Course can only be published from DRAFT state");
         }
         courseStatus = CourseStatus.PUBLISHED;
     }
 
     private void validateModuleAddition(CourseModule module) {
-        if (courseStatus != CourseStatus.DRAFT) {
-            throw new IllegalStateException(
-                    "Can only add modules to courses in DRAFT status");
+        if (!courseStatus.allowsModification()) {
+            throw new IllegalStateException("Can only add modules to courses in DRAFT status");
         }
         Objects.requireNonNull(module, "Module cannot be null");
     }
+
 
     @Override
     public String toString() {
@@ -99,6 +111,7 @@ public class Course extends BaseModel{
                 ", description='" + description + '\'' +
                 ", courseStatus=" + courseStatus +
                 ", modules=" + modules +
+                ", statistics=" + statistics +
                 '}';
     }
 

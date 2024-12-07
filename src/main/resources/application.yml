@@ -79,6 +79,7 @@ spring:
           # SQL formatting i statistika
         generate_statistics: true
         show-sql: false # Logiramo kroz logger umjesto stdout
+        validate_missing_version=true: true
 
         # sencond level hibernate chache
         cache:

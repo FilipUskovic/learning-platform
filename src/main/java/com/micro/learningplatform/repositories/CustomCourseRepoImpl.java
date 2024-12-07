@@ -140,11 +140,11 @@ public class CustomCourseRepoImpl implements CustomCourseRepo {
     public List<CourseSearchResult> fullTextSearch(String searchTerm) throws RepositoryException {
         return executeWithMetrics("fullTextSearch", () -> {
             String sql = """
-                SELECT c.id as id, c.title as title, 
-                    ts_rank(to_tsvector('english', c.title || ' ' || c.description), 
+                SELECT c.id as id, c.title as title,
+                    ts_rank(to_tsvector('english', c.title || ' ' || c.description),
                     plainto_tsquery('english', :searchTerm)) as rank
                 FROM courses c
-                WHERE to_tsvector('english', c.title || ' ' || c.description) @@ 
+                WHERE to_tsvector('english', c.title || ' ' || c.description) @@
                     plainto_tsquery('english', :searchTerm)
                 ORDER BY rank DESC
                 """;

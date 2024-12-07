@@ -1,7 +1,9 @@
 package com.micro.learningplatform.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
+@Setter
+@AllArgsConstructor
 @MappedSuperclass // ne stvara vlastitu tablicu u bazi i ne moze se koristi ko entitet
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseModel {
@@ -48,7 +52,8 @@ public abstract class BaseModel {
     @Column(name = "max_students")
     private Integer maxStudents = 100;
 
-    protected BaseModel() {}
+    protected BaseModel() {
+    }
 
 
 }

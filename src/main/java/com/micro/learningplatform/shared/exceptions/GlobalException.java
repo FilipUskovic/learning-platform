@@ -28,6 +28,8 @@ public class GlobalException extends ResponseEntityExceptionHandler {
 
 
 
+
+
     @ExceptionHandler(CourseNotFoundException.class)
     public ProblemDetail handleCourseNotFound(
             CourseNotFoundException ex, WebRequest request) {

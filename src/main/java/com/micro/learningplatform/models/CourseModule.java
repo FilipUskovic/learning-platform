@@ -43,7 +43,7 @@ public class CourseModule extends BaseModel {
 
     public static CourseModule create(CreateModuleRequest request) {
         CourseModule module = new CourseModule();
-        module.Id = UUID.randomUUID();
+       // module.Id = UUID.randomUUID();
         module.title = Objects.requireNonNull(request.title(), "Title must not be null");
         module.description = request.description();
         module.sequenceNumber = request.sequenceNumber();
