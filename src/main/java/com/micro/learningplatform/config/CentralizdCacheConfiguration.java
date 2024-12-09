@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.micro.learningplatform.cache.CacheEvent;
+import com.micro.learningplatform.cache.CacheEventListener;
 import com.micro.learningplatform.cache.CacheSpec;
 import com.micro.learningplatform.cache.CustomCaffeineCacheManager;
 import com.micro.learningplatform.services.CacheMetricsService;
@@ -34,6 +36,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Configuration
 @EnableCaching
@@ -44,6 +47,8 @@ public class CentralizdCacheConfiguration implements CachingConfigurer {
     private final RedisConnectionFactory redisConnectionFactory;
     private final MeterRegistry meterRegistry;
     private final CacheMetricsService cacheMetricsService;
+    private final CacheEventListener cacheEventListener;
+
 
     @Value("${spring.cache.caffeine.spec}")
     private String caffeineSpec;
@@ -82,6 +87,23 @@ public class CentralizdCacheConfiguration implements CachingConfigurer {
 
     }
 
+   // konfiguraciju cache buildera s event listenerom
+
+    private Caffeine<Object, Object> configureCacheBuilder(CacheSpec spec) {
+        return Caffeine.newBuilder()
+                .maximumSize(spec.maxSize())
+                .expireAfterWrite(spec.expireAfterWrite())
+                .recordStats()
+                .removalListener((key, value, cause) -> {
+                    cacheEventListener.onCacheEvent(new CacheEvent(
+                            spec.name(),
+                            key,
+                            CacheEvent.CacheEventType.EVICTION,
+                            Optional.of(cause.toString())
+                    ));
+                });
+    }
+
 
     // kompozitni manager koji pravlja lokalnim i distributivnim kesom
     @Override
@@ -89,7 +111,8 @@ public class CentralizdCacheConfiguration implements CachingConfigurer {
     public CacheManager cacheManager() {
         CompositeCacheManager compositeCacheManager = new CompositeCacheManager();
 
-       // lokalni cache (Caffeine) za brzi pristup
+
+        // lokalni cache (Caffeine) za brzi pristup
         CaffeineCacheManager localCache = createLocalCacheManager();
        // distribuirani cache (Redis) za dijeljene podatke
         RedisCacheManager distributedCache = createDistributedCacheManager();
@@ -142,17 +165,11 @@ public class CentralizdCacheConfiguration implements CachingConfigurer {
         CustomCaffeineCacheManager cacheManager = new CustomCaffeineCacheManager();
         Map<String, Caffeine<Object, Object>> cacheBuilders = new HashMap<>();
 
-        // Konfiguriramo cache za svaku strategiju
+        //novo azurieano koristi novu konfiguraciju
         for (CacheStrategy strategy : CacheStrategy.values()) {
             CacheSpec spec = strategy.spec;
-            cacheBuilders.put(spec.name(),
-                    Caffeine.newBuilder()
-                            .maximumSize(spec.maxSize())
-                            .expireAfterWrite(spec.expireAfterWrite())
-                            .recordStats()
-                            .removalListener((key, value, cause) ->
-                                    handleCacheRemoval(spec.name(), key, cause))
-            );
+            cacheBuilders.put(spec.name(), configureCacheBuilder(spec));
+
             log.info("Configured cache: {}, maxSize: {}, expireAfterWrite: {}",
                     spec.name(), spec.maxSize(), spec.expireAfterWrite());
         }
@@ -209,6 +226,28 @@ public class CentralizdCacheConfiguration implements CachingConfigurer {
                 Tags.of("cache", cacheName),
                 cache,
                 this::getCacheEvictions);
+    }
+
+    private void registerDetailedCacheMetrics(String cacheName,
+                                              com.github.benmanes.caffeine.cache.Cache<Object, Object> cache) {
+        // Postojeće metrike ostaju
+        registerCacheMetrics(cacheName, cache);
+
+        // Dodajemo nove metrike
+        meterRegistry.gauge("cache.hit.rate",
+                Tags.of("cache", cacheName),
+                cache,
+                c -> c.stats().hitRate());
+
+        meterRegistry.gauge("cache.load.penalty",
+                Tags.of("cache", cacheName),
+                cache,
+                c -> c.stats().averageLoadPenalty());
+
+        meterRegistry.gauge("cache.eviction.weight",
+                Tags.of("cache", cacheName),
+                cache,
+                c -> c.stats().evictionWeight());
     }
 
     private double getCacheEvictions(com.github.benmanes.caffeine.cache.Cache<Object, Object> objectObjectCache) {

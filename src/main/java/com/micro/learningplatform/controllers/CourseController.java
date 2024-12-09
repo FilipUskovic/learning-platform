@@ -1,10 +1,8 @@
 package com.micro.learningplatform.controllers;
 
-import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.dto.*;
 import com.micro.learningplatform.services.CourseServiceImpl;
-import com.micro.learningplatform.shared.CourseMapper;
 import com.micro.learningplatform.shared.utils.ValidationUtils;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -87,12 +85,8 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/with-modules")
-    public ResponseEntity<CourseResponse> getCourseWithModules(
-            @PathVariable String id) {   // Primamo kao String
-
-        return ResponseEntity.ok(
-                courseService.getCourseWithModules(ValidationUtils.parseUUID(id))
-        );
+    public ResponseEntity<CourseResponse> getCourseWithModules(@PathVariable String id) {
+        return ResponseEntity.ok(courseService.getCourseWithModules(ValidationUtils.parseUUID(id)));
     }
 
 

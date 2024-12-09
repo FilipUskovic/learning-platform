@@ -26,6 +26,7 @@ public class CourseStatisticsController {
             LocalDateTime endDate) {
 
         return ResponseEntity.ok(
+                // Create initial snapshot
                 statisticsService.getStatisticsHistory(courseId, startDate, endDate));
     }
 }
