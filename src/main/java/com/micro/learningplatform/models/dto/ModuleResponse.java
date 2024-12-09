@@ -7,6 +7,7 @@ public record ModuleResponse(
         String title,
         String description,
         int sequenceNumber,
-        Duration duration
+        Duration duration,
+        Duration averageModuleDuration
 ) {
 }

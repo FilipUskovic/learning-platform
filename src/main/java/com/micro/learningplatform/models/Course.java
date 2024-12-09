@@ -11,13 +11,16 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cache;
 
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "courses")
 @Getter
 @Setter
 @AllArgsConstructor
+@ToString
 //Secong level cache za smanjejne opterecenja baze
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Course extends BaseModel{
@@ -46,10 +49,16 @@ public class Course extends BaseModel{
     @OrderBy("sequenceNumber")
     // Secong level cache za smanjejne opterecenja baze
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @ToString.Exclude
     private List<CourseModule> modules = new ArrayList<>();
 
     @Embedded
     private CourseStatistics statistics;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @OrderBy("snapshotTimestamp DESC")
+    @ToString.Exclude
+    private List <CourseStatisticHistory> statisticHistory = new ArrayList<>();
 
     // zelim da statisitka uvijek postoji
     protected Course() {
@@ -83,6 +92,12 @@ public class Course extends BaseModel{
         log.info("Module added to course. Total modules: {}", this.modules.size());
 
         statistics.recalculate(modules);
+        log.info("Statistics recalculated: totalModules={}, totalDuration={}",
+                statistics.getTotalModules(), statistics.getTotalDuration());
+
+        // Create a snapshot
+     //   CourseStatisticHistory snapshot = createSnap();
+      //  log.info("Snapshot created: {}", snapshot);
 
 
     }
@@ -102,18 +117,28 @@ public class Course extends BaseModel{
         Objects.requireNonNull(module, "Module cannot be null");
     }
 
+    // history
+    public CourseStatisticHistory createSnap() {
+        log.debug("Creating snapshot for course ID: {}", this.Id);
 
-    @Override
-    public String toString() {
-        return "Course{" +
-                "Id=" + Id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", courseStatus=" + courseStatus +
-                ", modules=" + modules +
-                ", statistics=" + statistics +
-                '}';
+        CourseStatisticHistory snapShot = CourseStatisticHistory.createSnapshot(this);
+        statisticHistory.add(snapShot);
+        log.debug("Snapshot added to course statistic history. Total snapshots: {}", statisticHistory.size());
+
+        return snapShot;
+
     }
+
+  //  dohvat povijesti statistika za određeni period
+
+    public List<CourseStatisticHistory> getStatisticHistory(LocalDateTime startDate, LocalDateTime endDate) {
+        return statisticHistory.stream()
+                .filter(history -> history.getSnapshotTimestamp().isAfter(startDate)
+                && history.getSnapshotTimestamp().isBefore(endDate))
+                .collect(Collectors.toList());
+    }
+
+
 
     @Override
     public boolean equals(Object o) {

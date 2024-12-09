@@ -12,7 +12,8 @@ public class CourseModuleMapper {
                 module.getTitle(),
                 module.getDescription(),
                 module.getSequenceNumber(),
-                module.getDuration()
+                module.getDuration(),
+                module.getEstimatedDuration()
         );
     }
 
@@ -29,7 +30,8 @@ public class CourseModuleMapper {
                                 module.getTitle(),
                                 module.getDescription(),
                                 module.getSequenceNumber(),
-                                module.getDuration()))
+                                module.getDuration(),
+                                module.getEstimatedDuration()))
                         .toList()
         );
     }

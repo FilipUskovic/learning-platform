@@ -25,6 +25,10 @@ public class CourseStatistics {
     @Column(name = "last_calculated")
     private LocalDateTime lastCalculated;
 
+    @Column(name = "average_module_duration")
+    private Duration averageModuleDuration;
+
+
 
     protected CourseStatistics() {
         this.totalModules = 0;
@@ -37,6 +41,14 @@ public class CourseStatistics {
         this.totalDuration = modules.stream()
                 .map(CourseModule::getDuration)
                 .reduce(Duration.ZERO, Duration::plus);
+        this.lastCalculated = LocalDateTime.now();
+
+        if (!modules.isEmpty()) {
+            this.averageModuleDuration = this.totalDuration.dividedBy(modules.size());
+        } else {
+            this.averageModuleDuration = Duration.ZERO;
+        }
+
         this.lastCalculated = LocalDateTime.now();
     }
 }
