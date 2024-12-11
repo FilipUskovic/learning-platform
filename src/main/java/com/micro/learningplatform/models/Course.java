@@ -1,8 +1,6 @@
 package com.micro.learningplatform.models;
 
-import com.micro.learningplatform.event.DomainEvent;
 import com.micro.learningplatform.models.dto.CreateCourseRequest;
-import com.micro.learningplatform.shared.exceptions.CourseValidationException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;

@@ -1,6 +1,6 @@
 package com.micro.learningplatform.cache;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import com.micro.learningplatform.services.CacheMetricsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,39 +10,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CacheEventListener {
 
-    private final MeterRegistry meterRegistry;
+    private final CacheMetricsService metricsService;
 
+    /*
+     * imao sam duplicirane koda i logike ovdje kod bilježenja događaja i metrike
+     * radi bolje modularnosti ov klasa ce upravljati samo samo jednom odgovornosti
+     *
+     *          "TE SADA JE SAMO ULAZNA TOČKA DOGAĐAJA "
+     *
+     *  Sto postižem s tim :
+     *  1. sada se logika događa samo na jednom mjestu -> CacheMetricsService
+     *  2. ova klasa sada ima samo jednu odgovornost
+     *  3. lakse je testirati
+     */
 
-    public void onCacheEvent(CacheEvent event) {
-        // Bilježimo događaj u metrike
-        meterRegistry.counter("cache.events",
-                "type", event.type().name(),
-                "cache", event.cacheName()
-        ).increment();
+    public void onCacheEvent(CacheEvent cacheEvent) {
+        // delegiramo dogadaj u cacheMetrics za centralizirano upravljanje
+        metricsService.recordCacheEvent(cacheEvent);
 
-        // Bilježimo detaljne informacije u log
-        log.debug("Cache event: {} for cache: {}, key: {}",
-                event.type(),
-                event.cacheName(),
-                event.key());
-
-        // Posebno pratimo eviction događaje
-        if (event.type() == CacheEvent.CacheEventType.EVICTION) {
-            handleEviction(event);
-        }
+        log.debug("Processed cache event: type={}, cache={}, key={}",
+                cacheEvent.type(), cacheEvent.cacheName(), cacheEvent.key());
     }
-
-    private void handleEviction(CacheEvent event) {
-        log.warn("Cache eviction occurred: cache={}, key={}, reason={}",
-                event.cacheName(),
-                event.key(),
-                event.evictionReason().orElse("unknown"));
-
-        meterRegistry.counter("cache.evictions",
-                "cache", event.cacheName(),
-                "reason", event.evictionReason().orElse("unknown")
-        ).increment();
-    }
-
-
 }

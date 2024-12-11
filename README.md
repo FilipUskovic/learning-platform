@@ -55,10 +55,15 @@ pojednostaviti [x]
 
 dan 6 jos jednomo opeimizirati prva 4 dana maknuti unused inport itd [x]
 optimizacija koda jos jednom [] (primjetio sam da imam duplikate negdje i da se neke metode mogu maknuti i neke klase rastavi)
-dodati poboljsanja za otimizaciju i metrike []
-provjeriti pratim li moderne tehnike  svugjde []
-optimizaciaj repository i servisa []
+dodati poboljsanja za otimizaciju i metrike [x]
+provjeriti pratim li moderne tehnike  svugjde [x]
+optimizaciaj repository i servisa [x]
+
+dan 7
 poboljsati kratko ratelimiter []
+provjeriti i testirai kontrollere []
+nastaivit optimizaciju i healt check kesiranja “[]
+poboljsati rad s eventima []
 
 Postaviti eureka servis []
 Razmisilit o GrallVM za native images []

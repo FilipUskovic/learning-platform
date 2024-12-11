@@ -9,9 +9,8 @@ public enum CourseStatus{
         return switch(this) {
             case DRAFT -> newStatus == PUBLISHED;
             case PUBLISHED -> newStatus == ARCHIVED;
-            case ARCHIVED -> false;
+            case ARCHIVED, REJECTED -> false;
             case APPROVED -> true;
-            case REJECTED -> false;
         };
     }
 
