@@ -8,14 +8,17 @@ import lombok.Getter;
  * Pruža konzistentan način rukovanja greškama kroz cijeli sustav.
  */
 @Getter
-public abstract class QueryAnalysisException extends RuntimeException {
+public class QueryAnalysisException extends RuntimeException {
     private final String queryId;
     private final QueryExecutionContext context;
 
-    protected QueryAnalysisException(String message, String queryId, QueryExecutionContext context, Throwable cause) {
-        super(message, cause);
+    public QueryAnalysisException(String message, String queryId, QueryExecutionContext context) {
+  //      super(message, cause);
+        super(message);
         this.queryId = queryId;
         this.context = context;
     }
+
+
 
 }

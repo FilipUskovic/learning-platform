@@ -3,7 +3,6 @@ package com.micro.learningplatform.repositories;
 import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.dto.CourseSearchResult;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
-import com.micro.learningplatform.shared.performace.UnifiedQueryAnalyzer;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityManager;
@@ -15,7 +14,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -34,8 +32,6 @@ import java.util.stream.Collectors;
 public class CustomCourseRepoImpl implements CustomCourseRepo {
 
     private final EntityManager entityManager;
-    private final UnifiedQueryAnalyzer queryAnalyzer;
-    private final CacheManager cacheManager;
     private final MeterRegistry meterRegistry;
 
     @Override

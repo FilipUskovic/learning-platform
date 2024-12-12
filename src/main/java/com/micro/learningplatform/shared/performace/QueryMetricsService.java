@@ -244,4 +244,12 @@ public class QueryMetricsService {
                         String.join(", ", rec.affectedObjects())))
                 .collect(Collectors.joining("; "));
     }
+
+    public void recordCacheMiss(String queryId) {
+        Counter counter = Counter.builder("query.cache.miss")
+                .tag("queryId", queryId)
+                .description("Cache miss for query")
+                .register(meterRegistry);
+        counter.increment();
+    }
 }

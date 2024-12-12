@@ -53,17 +53,25 @@ TODO ispraviti i poboljsati visak ili dupli kod [x]
 centralizirati [x]
 pojednostaviti [x]
 
-dan 6 jos jednomo opeimizirati prva 4 dana maknuti unused inport itd [x]
+dan 6 [x]
+jos jednomo opeimizirati prva 4 dana maknuti unused inport itd [x]
 optimizacija koda jos jednom [] (primjetio sam da imam duplikate negdje i da se neke metode mogu maknuti i neke klase rastavi)
 dodati poboljsanja za otimizaciju i metrike [x]
 provjeriti pratim li moderne tehnike  svugjde [x]
 optimizaciaj repository i servisa [x]
 
-dan 7
+dan 7[x]
 poboljsati kratko ratelimiter []
-provjeriti i testirai kontrollere []
-nastaivit optimizaciju i healt check kesiranja “[]
-poboljsati rad s eventima []
+provjeriti i testirai kontrollere [-]
+nastaivit optimizaciju i healt check kesiranja “[x]
+poboljsati rad s eventima [x]
+
+
+dan 8 []
+unaprijediti query i njegovu metriku te pracenje analize [x]
+unaprijediti sustav za napredne znacajke za pretrazivanje i analitiku []
+Skuziti zasto micrometer vraca krivo vrijeme query npr 30sec mi vraca a izvede se u 0.73 ms [x]
+
 
 Postaviti eureka servis []
 Razmisilit o GrallVM za native images []

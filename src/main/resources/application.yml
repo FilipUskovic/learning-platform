@@ -1,3 +1,11 @@
+# grupa za query analizer klasu
+app:
+  query:
+    slow-query-threshold-ms: 1000 # Prag za spore upite u milisekundama
+    cache-max-rows: 1000         # Maksimalni broj redova za cache
+
+
+
 spring:
   application:
     name: learning-platform
@@ -43,7 +51,6 @@ spring:
 
 
 
-
   datasource:
       url: jdbc:postgresql://localhost:5432/learning_platform
       username: ${DB_USER:learning_platform}
@@ -67,6 +74,10 @@ spring:
         register-mbeans: true
 
 
+
+
+
+
   jpa:
     hibernate:
       # kada dodam fly way promjenti na validate
@@ -78,7 +89,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
           # SQL formatting i statistika
         generate_statistics: true
-        show-sql: false # Logiramo kroz logger umjesto stdout
+        show-sql: true # Logiramo kroz logger umjesto stdout
         validate_missing_version=true: true
 
         # sencond level hibernate chache
@@ -104,6 +115,7 @@ spring:
           fail_on_pagination_over_collection_fetch: true
           plan_cache_max_size: 2048
 
+
       # Connection pool optimizacije
         connection:
           provider_disables_autocommit: true
@@ -120,6 +132,7 @@ spring:
             type: lucene
             directory:
               root: ${user.home}/learning-platform-indexes
+     #   use_sql_comments: true
 
   flyway:
     enabled: false
