@@ -49,13 +49,4 @@ public class CentralizdCacheConfiguration implements CachingConfigurer {
         return new MonitoredCacheManager(cacheManager, cacheMetricsService);
     }
 
-
-
-
-
-
-
-
-
-
 }

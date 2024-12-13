@@ -1,4 +1,6 @@
-package com.micro.learningplatform.models.dto;
+package com.micro.learningplatform.models.dto.courses;
+
+import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 
 import java.util.List;
 

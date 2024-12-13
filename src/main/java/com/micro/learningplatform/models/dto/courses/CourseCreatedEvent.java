@@ -1,4 +1,4 @@
-package com.micro.learningplatform.models.dto;
+package com.micro.learningplatform.models.dto.courses;
 
 import java.util.UUID;
 

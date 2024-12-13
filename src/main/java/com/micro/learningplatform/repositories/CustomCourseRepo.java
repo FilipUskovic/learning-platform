@@ -1,7 +1,7 @@
 package com.micro.learningplatform.repositories;
 
 import com.micro.learningplatform.models.Course;
-import com.micro.learningplatform.models.dto.CourseSearchResult;
+import com.micro.learningplatform.models.dto.courses.CourseSearchResult;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

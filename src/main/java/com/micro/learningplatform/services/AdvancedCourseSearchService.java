@@ -1,7 +1,7 @@
 package com.micro.learningplatform.services;
 
-import com.micro.learningplatform.models.dto.CourseSearchResult;
-import com.micro.learningplatform.models.dto.CourseTrend;
+import com.micro.learningplatform.models.dto.courses.CourseSearchResult;
+import com.micro.learningplatform.models.dto.courses.CourseTrend;
 import com.micro.learningplatform.models.dto.SearchRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;

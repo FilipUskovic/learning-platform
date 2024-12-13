@@ -44,8 +44,8 @@ public class CourseStatisticHistory {
 
         CourseStatisticHistory history = new CourseStatisticHistory();
         history.course = course;
-        history.totalModules = course.getStatistics().getTotalModules();
-        history.totalDuration = course.getStatistics().getTotalDuration();
+        history.totalModules = course.getCourseStatistics().getTotalModules();
+        history.totalDuration = course.getCourseStatistics().getTotalDuration();
         history.snapshotTimestamp = LocalDateTime.now();
         log.debug("Snapshot created with totalModules: {}, totalDuration: {}, snapshotTimestamp: {}",
                 history.totalModules, history.totalDuration, history.snapshotTimestamp);

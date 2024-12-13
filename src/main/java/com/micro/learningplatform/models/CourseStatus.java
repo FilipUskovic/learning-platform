@@ -1,7 +1,5 @@
 package com.micro.learningplatform.models;
 
-
-
 public enum CourseStatus{
     DRAFT, PUBLISHED, ARCHIVED, APPROVED, REJECTED;
 

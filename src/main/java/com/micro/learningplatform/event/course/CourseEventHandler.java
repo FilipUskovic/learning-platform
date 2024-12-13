@@ -1,8 +1,8 @@
-package com.micro.learningplatform.event;
+package com.micro.learningplatform.event.course;
 
 import com.micro.learningplatform.models.CourseStatus;
-import com.micro.learningplatform.models.dto.CourseCreatedEvent;
-import com.micro.learningplatform.models.dto.CoursePublishedEvent;
+import com.micro.learningplatform.models.dto.courses.CourseCreatedEvent;
+import com.micro.learningplatform.models.dto.courses.CoursePublishedEvent;
 import com.micro.learningplatform.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.micro.learningplatform.models.dto;
+package com.micro.learningplatform.models.dto.courses;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

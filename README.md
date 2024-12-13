@@ -183,6 +183,13 @@ dodao redis i coffeince za 1 i 2 lazer kesiranja dodao optimizacije dinamciki cr
  ze indexe i metrcie te pracenje svega razmisilit o tome da maknem nesto vjv ima viska kad budem dosao do toga 
 
 
+ Višeslojni kes, sustav kombinira caffeine za lokalno predmemoriranje i redis za distibutivno 
+
+Event Driven sustav korsiti kombinaciju Spring Event-a i Kafk-u za distribuirane događaje
+ -> Base model je indirektno povezan s ovim sustavom kroz entitete koji ga nasljeđuju
+    -> Posebno Course model koji generira događaje  
+      -> sustav za particioniranje koji upravlja podacima kroz vrijeme gjde basemodel pruza vremenske oznake createtAt i updatedAt
+
 ### Reference Documentation
 
 For further reference, please consider the following sections:

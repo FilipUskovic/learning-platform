@@ -1,9 +1,8 @@
 package com.micro.learningplatform.shared;
 
 import com.micro.learningplatform.models.Course;
-import com.micro.learningplatform.models.CourseModule;
-import com.micro.learningplatform.models.dto.CourseResponse;
-import com.micro.learningplatform.models.dto.CourseResponseWithModules;
+import com.micro.learningplatform.models.dto.courses.CourseResponse;
+import com.micro.learningplatform.models.dto.courses.CourseResponseWithModules;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;

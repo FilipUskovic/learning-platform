@@ -2,6 +2,8 @@ package com.micro.learningplatform.controllers;
 
 import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.dto.*;
+import com.micro.learningplatform.models.dto.courses.*;
+import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.services.CourseServiceImpl;
 import com.micro.learningplatform.shared.utils.ValidationUtils;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;

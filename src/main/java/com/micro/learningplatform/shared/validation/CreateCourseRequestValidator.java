@@ -1,6 +1,6 @@
 package com.micro.learningplatform.shared.validation;
 
-import com.micro.learningplatform.models.dto.CreateCourseRequest;
+import com.micro.learningplatform.models.dto.courses.CreateCourseRequest;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
