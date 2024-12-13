@@ -1,35 +1,46 @@
 package com.micro.learningplatform.models;
 
-import com.micro.learningplatform.models.dto.coursestatistic.StatisticsCalculationContext;
-import com.micro.learningplatform.models.dto.coursestatistic.StatisticsSummary;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 
-@Getter(AccessLevel.PACKAGE)
-@Setter
+import java.util.Set;
+import java.util.UUID;
+
+@Getter
+@Setter(AccessLevel.PACKAGE)
 @AllArgsConstructor
-@Embeddable
+@Entity
+@ToString
+@NoArgsConstructor
+@Table(name = "course_statistics")
 public class CourseStatistics {
 
-    @Column(name = "total_modules")
-    private int totalModules;
+    /**
+     *  Ova klasa pruza detaljnu statisku
+     *  Prati kopletan korsinicki napredak kroz tecajeve (courses)
 
-    @Column(name = "total_duration")
-    private Duration totalDuration;
+     */
 
-    @Column(name = "last_calculated")
-    private LocalDateTime lastCalculated;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "course_id")
+    private UUID courseId;
+
+    /**
+     *  MapsId je kompozitni primrany kljuc tecaja -> dijeli siti primarny kljuc kao Course (CourseStatistics i couse) isti priarmn kljuc
+     *  relacija 1 na 1
+     *  join colum povezuje course_id iz CourseStatistics s Course.
+     */
+
+    @MapsId
+    @OneToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
 
     @Column(name = "average_module_duration")
     private Duration averageModuleDuration;
@@ -40,110 +51,67 @@ public class CourseStatistics {
     @Column(name = "difficulty_score")
     private BigDecimal difficultyScore;
 
-    protected CourseStatistics() {
-        this.totalModules = 0;
-        this.totalDuration = Duration.ZERO;
-        this.lastCalculated = LocalDateTime.now();
-        this.completionRate = BigDecimal.ZERO;
-        this.difficultyScore = BigDecimal.ZERO;
-    }
+    @Column(name = "last_calculated")
+    private LocalDateTime lastCalculated;
 
-    public void recalculate(List<CourseModule> modules) {
-        this.totalModules = modules.size();
-        this.totalDuration = modules.stream()
-                .map(CourseModule::getDuration)
-                .reduce(Duration.ZERO, Duration::plus);
-        this.lastCalculated = LocalDateTime.now();
-
-        if (!modules.isEmpty()) {
-            this.averageModuleDuration = this.totalDuration.dividedBy(modules.size());
-        } else {
-            this.averageModuleDuration = Duration.ZERO;
-        }
-    }
-
-
-    private void calculateBasicMetrics(StatisticsCalculationContext context) {
-        this.totalModules = context.getModules().size();
-
-        this.totalDuration = context.getModules().stream()
-                .map(CourseModule::getDuration)
-                .filter(Objects::nonNull)
-                .reduce(Duration.ZERO, Duration::plus);
-
-        if (!context.getModules().isEmpty()) {
-            this.averageModuleDuration = this.totalDuration.dividedBy(this.totalModules);
-        } else {
-            this.averageModuleDuration = Duration.ZERO;
-        }
-    }
-
-    private void calculateAdvancedMetrics(StatisticsCalculationContext context) {
-        calculateCompletionRate(context);
-        calculateDifficultyScore(context);
-    }
 
     /*
-    private void calculateCompletionRate(StatisticsCalculationContext context) {
-        if (context.getCompletions().isEmpty()) {
+       Povezujemo statiskiku s odgovarajucim tecajem
+     */
+    protected CourseStatistics(Course course) {
+        this.courseId = course.getId();
+        this.course = course;
+    }
+
+
+    public void recalculate(Set<CourseModule> modules) {
+        calculateAverageModuleDuration(modules);
+        calculateCompletionRate(modules);
+        calculateDifficultyScore(modules);
+        this.lastCalculated = LocalDateTime.now();
+    }
+
+    private void calculateAverageModuleDuration(Set<CourseModule> modules) {
+        if (modules.isEmpty()) {
+            this.averageModuleDuration = Duration.ZERO;
+            return;
+        }
+
+        Duration totalDuration = modules.stream()
+                .map(CourseModule::getDuration)
+                .reduce(Duration.ZERO, Duration::plus);
+        this.averageModuleDuration = totalDuration.dividedBy(modules.size());
+    }
+
+    private void calculateCompletionRate(Set<CourseModule> modules) {
+        if (modules.isEmpty()) {
             this.completionRate = BigDecimal.ZERO;
             return;
         }
 
-        long completedCount = context.getCompletions().stream()
-                .filter(CourseCompletion::isCompleted)
+        long completedModules = modules.stream()
+                .filter(module -> module.getStatus() == ModuleStatus.COMPLETED)
                 .count();
 
-        this.completionRate = BigDecimal.valueOf(completedCount)
-                .divide(BigDecimal.valueOf(context.getCompletions().size()), 2, RoundingMode.HALF_UP);
+        this.completionRate = BigDecimal.valueOf(completedModules)
+                .divide(BigDecimal.valueOf(modules.size()), 2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
     }
 
-
-
-    private void calculateDifficultyScore(StatisticsCalculationContext context) {
-        if (context.getCompletions().isEmpty()) {
+    private void calculateDifficultyScore(Set<CourseModule> modules) {
+        if (modules.isEmpty()) {
             this.difficultyScore = BigDecimal.ZERO;
             return;
         }
 
-        double averageAttempts = context.getCompletions().stream()
-                .mapToInt(CourseCompletion::getAttemptCount)
-                .average()
-                .orElse(0.0);
+        int totalDifficultyScore = modules.stream()
+                .mapToInt(module -> module.getDifficultyLevel().getScore())
+                .sum();
 
-        this.difficultyScore = BigDecimal.valueOf(averageAttempts)
-                .multiply(BigDecimal.valueOf(this.totalModules))
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        this.difficultyScore = BigDecimal.valueOf(totalDifficultyScore)
+                .divide(BigDecimal.valueOf(modules.size()), 2, RoundingMode.HALF_UP);
     }
-
-     */
-
-
-    public StatisticsSummary createSummary() {
-        return new StatisticsSummary(
-                this.totalModules,
-                this.totalDuration,
-                this.averageModuleDuration,
-                this.completionRate,
-                this.difficultyScore,
-                this.lastCalculated
-        );
-    }
-
-
-
-    @Override
-    public String toString() {
-        return String.format(
-                "CourseStatistics[modules=%d, duration=%s, avgDuration=%s, completionRate=%s%%, difficultyScore=%s]",
-                totalModules,
-                totalDuration,
-                averageModuleDuration,
-                completionRate.multiply(BigDecimal.valueOf(100)).setScale(1, RoundingMode.HALF_UP),
-                difficultyScore.setScale(1, RoundingMode.HALF_UP)
-        );
-    }
-
+}
 
 
     /*
@@ -184,4 +152,4 @@ public class CourseStatistics {
     }
 
      */
-}
+

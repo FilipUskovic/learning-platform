@@ -3,6 +3,7 @@ package com.micro.learningplatform.models;
 import com.micro.learningplatform.event.module.ModuleContentUpdatedEvent;
 import com.micro.learningplatform.event.module.ModuleCreatedEvent;
 import com.micro.learningplatform.event.module.ModulePrerequisiteAddedEvent;
+import com.micro.learningplatform.event.module.ModuleStatusChangedEvent;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.models.dto.module.ModuleData;
 import com.micro.learningplatform.models.dto.module.UpdateModuleRequest;
@@ -24,7 +25,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "course_modules")
-@Getter(AccessLevel.PROTECTED)
+@Getter
 @Setter(AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -93,7 +94,7 @@ public class CourseModule extends BaseModel {
         module.setDescription(request.description());
         module.setSequenceNumber(request.sequenceNumber());
         module.setDuration(request.duration());
-
+        module.setStatus(ModuleStatus.DRAFT);
         module.registerEvent(new ModuleCreatedEvent(module.getId()));
         return module;
     }
@@ -123,7 +124,20 @@ public class CourseModule extends BaseModel {
         registerEvent(new ModulePrerequisiteAddedEvent(this.getId(), prerequisite.getId()));
     }
 
+    public void publish() {
+        validateModuleIsEditable();
+        ModuleStatus previousStatus = this.status;
+        this.status = ModuleStatus.PUBLISHED;
+        registerEvent(new ModuleStatusChangedEvent(this.getId(), previousStatus, ModuleStatus.PUBLISHED));
+    }
 
+    public void complete() {
+        if (this.status != ModuleStatus.PUBLISHED) {
+            throw new ModuleStateException("Only published modules can be marked as completed");
+        }
+        this.status = ModuleStatus.COMPLETED;
+        registerEvent(new ModuleStatusChangedEvent(this.getId(), ModuleStatus.PUBLISHED, ModuleStatus.COMPLETED));
+    }
 
     private void validateModuleIsEditable() {
         if (!isEditableState()) {

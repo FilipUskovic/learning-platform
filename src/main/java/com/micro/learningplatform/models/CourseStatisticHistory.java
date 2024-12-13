@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -32,6 +33,15 @@ public class CourseStatisticHistory {
     @Column(name = "total_duration", nullable = false)
     private Duration totalDuration;
 
+    @Column(name = "average_module_duration", nullable = false)
+    private Duration averageModuleDuration;
+
+    @Column(name = "completion_rate", nullable = false)
+    private BigDecimal completionRate;
+
+    @Column(name = "difficulty_score", nullable = false)
+    private BigDecimal difficultyScore;
+
     @Column(name = "snapshot_timestamp", nullable = false)
     private LocalDateTime snapshotTimestamp;
 
@@ -39,18 +49,17 @@ public class CourseStatisticHistory {
     }
 
     // Factory metoda za kreiranje povijesnog zapisa
-    public static CourseStatisticHistory createSnapshot(Course course) {
-        log.debug("Creating snapshot for course ID: {}", course.getId());
-
-        CourseStatisticHistory history = new CourseStatisticHistory();
-        history.course = course;
-        history.totalModules = course.getCourseStatistics().getTotalModules();
-        history.totalDuration = course.getCourseStatistics().getTotalDuration();
-        history.snapshotTimestamp = LocalDateTime.now();
-        log.debug("Snapshot created with totalModules: {}, totalDuration: {}, snapshotTimestamp: {}",
-                history.totalModules, history.totalDuration, history.snapshotTimestamp);
-        return history;
-
+    public static CourseStatisticHistory createSnapshot(CourseStatistics statistics) {
+        return new CourseStatisticHistory(
+                null,
+                statistics.getCourse(),
+                statistics.getCourse().getStatisticsSnapshot().getTotalModules(),
+                statistics.getCourse().getStatisticsSnapshot().getTotalDuration(),
+                statistics.getAverageModuleDuration(),
+                statistics.getCompletionRate(),
+                statistics.getDifficultyScore(),
+                LocalDateTime.now()
+        );
     }
 
 

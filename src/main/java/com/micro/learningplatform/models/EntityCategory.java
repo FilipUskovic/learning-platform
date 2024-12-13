@@ -6,15 +6,17 @@ import lombok.Getter;
 public enum EntityCategory {
     // Definiram unaprijed određene kategorije entitea
 
-    COURSE("Course"),
-    MODULE("Module"),
-    ASSESSMENT("Assessment"),
-    RESOURCE("Resource");
+    COURSE("Course", 100),
+    MODULE("Module", 50),
+    ASSESSMENT("Assessment", 25),
+    RESOURCE("Resource", 10);
 
     private final String displayName;
+    private final int score;
 
-    EntityCategory(String displayName) {
+    EntityCategory(String displayName, int score) {
         this.displayName = displayName;
+        this.score = score;
     }
 
 }

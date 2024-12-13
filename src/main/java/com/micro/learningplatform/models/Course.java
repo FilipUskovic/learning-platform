@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "courses")
-@Getter(AccessLevel.PROTECTED)
+@Getter
 @Setter(AccessLevel.PROTECTED)
 @AllArgsConstructor
 @ToString
@@ -38,6 +38,7 @@ public class Course extends BaseModel{
        4. Podrška particioniranje i poboljšanja analiza upita
           -> Implementiran getPartitionKey za integraciju s vašim sustavom particioniranja
           -> Proširena metadata za analizu upita s dodatnim informacijama specifičnim za tečajeve
+        5. Koristio sam embbede jer su lakse za bazu, tj smanjuj broj upita prema bazi hvataju u jednom upitu sve
      */
 
     private static final int MINIMUM_MODULES_FOR_PUBLICATION = 1;
@@ -70,11 +71,17 @@ public class Course extends BaseModel{
     @OrderBy("sequenceNumber")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @ToString.Exclude
-    private List<CourseModule> modules = new ArrayList<>();
+    private Set<CourseModule> modules = new HashSet<>();
 
     // ugrađena klasa CourseStatistics, nema vlastitu talbicu
 
+
+    // brzi pristup osnovnim statistikama
     @Embedded
+    private CourseStatisticsSnapshot statisticsSnapshot;
+
+    // detaljnije statiske su sada zaspebni entiet i tu korsiti separation of concer sada
+    @OneToOne(mappedBy = "course", cascade = CascadeType.ALL)
     private CourseStatistics courseStatistics;
 
     /**
@@ -92,9 +99,9 @@ public class Course extends BaseModel{
 
 
     protected Course(){
-        this.courseStatistics = new CourseStatistics();
         this.courseStatus = CourseStatus.DRAFT;
         setCategory(EntityCategory.COURSE);
+        this.statisticsSnapshot = new CourseStatisticsSnapshot();
     }
 
     // Factory metoda koja osigurava ispravnu inicijalizaciju
@@ -102,6 +109,7 @@ public class Course extends BaseModel{
         Course course = new Course();
         course.setTitle(title);
         course.setDescription(description);
+        course.courseStatistics = new CourseStatistics(course);
         course.registerEvent(new CourseCreatedEvent(course.getId()));
         return course;
     }
@@ -113,6 +121,8 @@ public class Course extends BaseModel{
         validateModuleAddition(module);
         module.setCourse(this);
         modules.add(module);
+        statisticsSnapshot.incrementModuleCount();
+        statisticsSnapshot.addDuration(module.getDuration());
         courseStatistics.recalculate(modules);
         createSnapshot();
         registerEvent(new CourseModuleAddedEvent(this.getId(), module.getId()));
@@ -122,9 +132,11 @@ public class Course extends BaseModel{
     // za uklananje modula TODO: vidjeti dali samo administrator moze uklanjati module
     public void removeModule(CourseModule module) {
         validateModuleRemoval(module);
-        modules.remove(module); // Uklanja modul iz kolekcije
-        module.setCourse(null); // Briše vezu između modula i tečaja
-        courseStatistics.recalculate(modules); // Ažurira statistiku
+        modules.remove(module);
+        module.setCourse(null);
+        statisticsSnapshot.decrementModuleCount();
+        statisticsSnapshot.subtractDuration(module.getDuration());
+        courseStatistics.recalculate(modules);
         createSnapshot(); // Stvara snimku nakon izmjene
 
         //registerEvent(new CourseModuleRemovedEvent(this.getId(), module.getId())); // Registrira događaj
@@ -195,8 +207,8 @@ public class Course extends BaseModel{
 
 
     private void createSnapshot() {
-        CourseStatisticHistory snapshot = CourseStatisticHistory.createSnapshot(this);
-        statisticHistory.addFirst(snapshot); // Dodajemo na početak liste zbog @OrderBy
+        CourseStatisticHistory snapshot = CourseStatisticHistory.createSnapshot(courseStatistics);
+        statisticHistory.add(snapshot); // Koristimo add jer je lista sortirana s @OrderBy
     }
 
     public List<CourseStatisticHistory> getStatisticHistory(LocalDateTime startDate, LocalDateTime endDate) {

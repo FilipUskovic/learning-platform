@@ -18,7 +18,7 @@ import java.util.*;
 
 @AllArgsConstructor
 // cilj je sprijeciti d avanjske klase izravno pristupaju poljima i forsirati da nasljene klase upravljaju preko kontorlnih metoda
-@Getter(AccessLevel.PROTECTED)
+@Getter
 @Setter (AccessLevel.PROTECTED)
 @MappedSuperclass // ne stvara vlastitu tablicu u bazi i ne moze se koristi ko entitet -> aka nadklasa ja jpa entietet
 @EntityListeners(AuditingEntityListener.class) // korsiti se za slusanje događaja na entiteu, automatksi popujava poblja cratedDate itd..

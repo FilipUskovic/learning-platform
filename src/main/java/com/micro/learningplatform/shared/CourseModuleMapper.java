@@ -6,6 +6,8 @@ import com.micro.learningplatform.models.dto.courses.CourseResponseWithModules;
 import com.micro.learningplatform.models.dto.module.ModuleResponse;
 
 public class CourseModuleMapper {
+
+
     public static ModuleResponse toDTO(CourseModule module) {
         return new ModuleResponse(
                 module.getId() != null ? module.getId().toString() : null,
@@ -16,7 +18,6 @@ public class CourseModuleMapper {
                 module.getEstimatedDuration()
         );
     }
-
     public static CourseResponseWithModules toResponseWithModules(Course course) {
         return new CourseResponseWithModules(
                 course.getId() != null ? course.getId().toString() : null,

@@ -4,20 +4,22 @@ import lombok.Getter;
 
 @Getter
 public enum DifficultyLevel {
-    BEGINNER(1, "Beginner"),
-    INTERMEDIATE(2,"Intermidiate"),
-    ADVANCED(3,"Advanced"),
-    EXPERT(4,"Expert");
+    BEGINNER(1, "Beginner", "Good for new studens"),
+    INTERMEDIATE(2,"Intermidiate", "You have to know basics"),
+    ADVANCED(3,"Advanced", "For preoffesionals"),
+    EXPERT(4,"Expert", "For experts");
 
-    private final int level;
+    private final int score;
     private final String displayName;
+    private final String description;
 
-    DifficultyLevel(int level, String displayName) {
-        this.level = level;
+    DifficultyLevel(int score, String displayName, String description) {
+        this.score = score;
+        this.description = description;
         this.displayName = displayName;
     }
 
-    public boolean isMoreAdvanceThan(DifficultyLevel other) {
-        return this.level > other.level;
+    public boolean isMoreAdvancedThan(DifficultyLevel other) {
+        return this.score > other.score;
     }
 }

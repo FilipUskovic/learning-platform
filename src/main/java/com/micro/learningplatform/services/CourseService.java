@@ -1,5 +1,6 @@
 package com.micro.learningplatform.services;
 
+import com.micro.learningplatform.models.CourseStatisticHistory;
 import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
@@ -7,6 +8,7 @@ import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,6 +41,8 @@ public interface CourseService {
     CourseResponseWithModules createWithModule(CreateCourseRequest createCourseRequest, List<CreateModuleRequest> moduleRequests);
 
     void batchAddCourseWithModules(CreateCourseWithModulesRequest request);
+
+    List<CourseStatisticHistory> getCourseHistory(UUID courseId, LocalDateTime startDate, LocalDateTime endDate);
 
 
 }
