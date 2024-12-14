@@ -67,10 +67,15 @@ nastaivit optimizaciju i healt check kesiranja “[x]
 poboljsati rad s eventima [x]
 
 
-dan 8 []
+dan 8 [x]
 unaprijediti query i njegovu metriku te pracenje analize [x]
 unaprijediti sustav za napredne znacajke za pretrazivanje i analitiku []
 Skuziti zasto micrometer vraca krivo vrijeme query npr 30sec mi vraca a izvede se u 0.73 ms [x]
+
+dan 9
+DDD promjenio domenske modele i logkiku [x]
+promjenio dtos pazio na ciruralne referenec i uuuid vs string za konverziju [x]
+razimilio o boljoj validicaiji i promjeni mappera i servisa [x]
 
 
 Postaviti eureka servis []
