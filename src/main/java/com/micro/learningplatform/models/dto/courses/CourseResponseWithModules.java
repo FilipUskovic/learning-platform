@@ -1,10 +1,10 @@
 package com.micro.learningplatform.models.dto.courses;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.EntityCategory;
 import com.micro.learningplatform.models.dto.DifficultyLevel;
-import com.micro.learningplatform.models.dto.coursestatistic.CourseStatisticsSnapshotDTO;
-import com.micro.learningplatform.models.dto.module.ModuleResponse;
+import com.micro.learningplatform.models.dto.module.ModuleBasicInfo;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,19 +18,15 @@ public record CourseResponseWithModules(
         CourseStatus status,
         EntityCategory category,
         DifficultyLevel difficultyLevel,
-        CourseStatisticsSnapshotDTO statistics,
-        List<ModuleResponse> modules,
+        CourseStatisticsDTO statistics,
+        /* korsitim  ModuleBasicInfo umjesto punog ModulaReposnsa
+         jednostavnije verzije zbog izbjegavanje circule reference i hebrnate lazy incilaizacja error-a
+         */
+        List<ModuleBasicInfo> modules,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
         LocalDateTime createdAt,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
         LocalDateTime updatedAt
 
-       /*
-        String publicId,
-        String title,
-        String description,
-        String status,
-        LocalDateTime createdAt,
-        List<ModuleResponse> modules
-
-        */
 ) {
 }

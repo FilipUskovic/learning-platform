@@ -82,4 +82,18 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             @Param("category") String category,
             @Param("level") String level);
 
+    //todo kombinirati opcionalne parameter  da bi smanjio kreiranje kreiranje metoda ovdje
+
+    @Query("""
+    SELECT c FROM Course c
+    WHERE (:status IS NULL OR c.courseStatus = :status)
+    ORDER BY c.createdAt DESC
+    """)
+    @QueryHints({
+            @QueryHint(name = "org.hibernate.cacheable", value = "true"),
+            @QueryHint(name = "org.hibernate.comment", value = "Using idx_courses_status_created")
+    })
+    List<Course> findByStatusWithOptionalOrder(@Param("status") CourseStatus status);
+
+
 }

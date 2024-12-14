@@ -3,21 +3,13 @@ package com.micro.learningplatform.models.dto.module;
 import com.micro.learningplatform.models.ModuleStatus;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
-public record ModuleResponse(
-
+public record ModuleBasicInfo(
         UUID id,
         String title,
-        String description,
         Integer sequenceNumber,
         Duration duration,
-        ModuleStatus status,
-        Set<UUID> prerequisites,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
-
+        ModuleStatus status
 ) {
 }

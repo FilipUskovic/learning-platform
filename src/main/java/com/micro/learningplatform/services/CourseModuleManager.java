@@ -25,7 +25,7 @@ public class CourseModuleManager {
 
 
      */
-
+/*
     public void renderModules(UUID courseId, List<UUID> newOrder) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -44,6 +44,8 @@ public class CourseModuleManager {
            module.setSequenceNumber(newPositions.get(module.getSequenceNumber()));
        });
     }
+
+ */
 
     private Map<UUID, Integer> createNewPositionMap(List<UUID> newOrder) {
         return IntStream.range(0, newOrder.size())

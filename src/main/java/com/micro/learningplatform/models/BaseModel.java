@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -19,11 +21,12 @@ import java.util.*;
 @AllArgsConstructor
 // cilj je sprijeciti d avanjske klase izravno pristupaju poljima i forsirati da nasljene klase upravljaju preko kontorlnih metoda
 @Getter
-@Setter (AccessLevel.PROTECTED)
+@Setter
 @MappedSuperclass // ne stvara vlastitu tablicu u bazi i ne moze se koristi ko entitet -> aka nadklasa ja jpa entietet
 @EntityListeners(AuditingEntityListener.class) // korsiti se za slusanje događaja na entiteu, automatksi popujava poblja cratedDate itd..
 @ToString
 public abstract class BaseModel {
+    private static final Logger log = LogManager.getLogger(BaseModel.class);
 
     /* -> Mapped supperklass jer zelimo dijeliti audit polja medu entitetima
        -> ne zelimo stvarati zasebnu zablicu
@@ -55,7 +58,8 @@ public abstract class BaseModel {
     private Long version;
 
     @Column(name = "author_id")
-    @NotNull(message = "Author must be added")
+    //TODO Kada dodamo security onda posatviti ovo na not null i dohvacati iz security contexta
+    //@NotNull(message = "Author must be added")
     private UUID authorId;
 
     @Column(name = "category")
@@ -90,6 +94,7 @@ public abstract class BaseModel {
     // Dodaje događaje u pendigs events, pripremajuci ga za objavu nakon tranzakcije
     protected void registerEvent(DomainEvent event) {
         pendingEvents.add(event);
+        log.debug("Registering event {}", event);
     }
 
     /*
@@ -129,11 +134,15 @@ public abstract class BaseModel {
             return metadata;
         }
 
-         @PreUpdate
+        @PreUpdate
         protected void validateStateChange() {
-            if(isEditableState()){
-                throw new IllegalStateException("Entitet is not in state that allows changes");
-        }
+             log.debug("Validating state change for entity: {}", this);
+             log.debug("Editable state check: {}", isEditableState());
+
+             if (!isEditableState()) {
+                 log.error("Entity is in an invalid state for updates: {}", this);
+                 throw new IllegalStateException("Entitet is not in state that allows changes");
+             }
 
     }
 

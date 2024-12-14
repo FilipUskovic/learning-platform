@@ -21,6 +21,11 @@ public record CourseCreatedEvent(
 
 
     @Override
+    public UUID getEventId() {
+        return null;
+    }
+
+    @Override
     public LocalDateTime getTimestamp() {
         return timestamp;
     }

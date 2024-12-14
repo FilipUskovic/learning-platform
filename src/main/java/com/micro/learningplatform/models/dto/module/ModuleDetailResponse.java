@@ -7,17 +7,18 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
-public record ModuleResponse(
-
+public record ModuleDetailResponse(
         UUID id,
         String title,
         String description,
         Integer sequenceNumber,
         Duration duration,
         ModuleStatus status,
-        Set<UUID> prerequisites,
+        // Samo ID kursa, ne cijeli objekt
+        UUID courseId,
+        // Pojednostavljeni prikaz prerequisita
+        Set<ModuleReferenceInfo> prerequisites,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
-
 ) {
 }

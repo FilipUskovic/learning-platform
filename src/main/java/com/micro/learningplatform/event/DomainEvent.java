@@ -5,6 +5,6 @@ import java.util.UUID;
 
 public interface DomainEvent {
 
-  //  UUID getEventId();
+    UUID getEventId();
     LocalDateTime getTimestamp();
 }

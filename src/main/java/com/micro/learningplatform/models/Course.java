@@ -3,15 +3,21 @@ package com.micro.learningplatform.models;
 import com.micro.learningplatform.event.course.CourseCreatedEvent;
 import com.micro.learningplatform.event.course.CourseModuleAddedEvent;
 import com.micro.learningplatform.event.course.CourseStatusChangedEvent;
+import com.micro.learningplatform.models.dto.DifficultyLevel;
 import com.micro.learningplatform.shared.exceptions.CourseStateException;
 import com.micro.learningplatform.shared.exceptions.CourseValidationException;
 import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.annotations.*;
 import org.hibernate.annotations.Cache;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,7 +31,7 @@ import java.util.stream.Collectors;
 //Secong level cache za smanjejne opterecenja baze
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE) // -> read i write strategoija osigurava da su podaci dosljedni onima u bazi
 public class Course extends BaseModel{
-
+    // Koristimo domain driven
     /* 1. Poboljšanja enkapsulacija
           -> getteri i setteri postavljeni na protected razinu
           -> imao factory pattern za kreiranje instanic
@@ -42,10 +48,12 @@ public class Course extends BaseModel{
      */
 
     private static final int MINIMUM_MODULES_FOR_PUBLICATION = 1;
+    private static final Logger log = LogManager.getLogger(Course.class);
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+   // @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(unique = true, nullable = false)
     private UUID Id;
 
     @Size(min = 1, max = 200)
@@ -82,6 +90,7 @@ public class Course extends BaseModel{
 
     // detaljnije statiske su sada zaspebni entiet i tu korsiti separation of concer sada
     @OneToOne(mappedBy = "course", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private CourseStatistics courseStatistics;
 
     /**
@@ -99,9 +108,11 @@ public class Course extends BaseModel{
 
 
     protected Course(){
+        this.Id = UUID.randomUUID(); // rucno generiram id jer zelim da bude prije spremanja entieta i moci cu pratiti dogadaj i zadrzati ddd
         this.courseStatus = CourseStatus.DRAFT;
         setCategory(EntityCategory.COURSE);
-        this.statisticsSnapshot = new CourseStatisticsSnapshot();
+        // / Osnovne statistike cemo ondah dodati
+        this.statisticsSnapshot = new CourseStatisticsSnapshot(0, Duration.ZERO);
     }
 
     // Factory metoda koja osigurava ispravnu inicijalizaciju
@@ -110,8 +121,29 @@ public class Course extends BaseModel{
         course.setTitle(title);
         course.setDescription(description);
         course.courseStatistics = new CourseStatistics(course);
+        log.info("Created course {}", course);
         course.registerEvent(new CourseCreatedEvent(course.getId()));
+        log.info("registe event {} for course", course);
         return course;
+    }
+
+/*
+    public void assignAuthor(UUID authorId) {
+        if (authorId == null) {
+            throw new IllegalArgumentException("Author ID must not be null");
+        }
+        super.setAuthorId(authorId);
+        log.info("Assign author {} to course {}", authorId, this);
+    }
+
+ */
+
+    public void setDifficultyLevel(DifficultyLevel difficultyLevel) {
+        if (difficultyLevel == null) {
+            throw new IllegalArgumentException("Difficulty Level must not be null");
+        }
+        super.setDifficultyLevel(difficultyLevel);
+        log.info("Assign difficulty level {} to course {}", difficultyLevel, this);
     }
 
     // Domenski  metode/logika
@@ -152,14 +184,16 @@ public class Course extends BaseModel{
 
 
     @Override
-    protected boolean isEditableState() {
+    public boolean isEditableState() {
+        log.debug("Checking if course is in editable state. Current status: {}", this.courseStatus);
         return CourseStatus.DRAFT.equals(this.courseStatus);
     }
 
     // Privatne metode za validaciju
     private void validateModuleAddition(CourseModule module) {
+        log.debug("Validating module addition. Course status: {}, Module: {}", this.courseStatus, module);
         if (!isEditableState()) {
-            throw new CourseStateException("Moduli can be added only for coourse with DRAFT status");
+            throw new CourseStateException("Module can be added only for coourse with DRAFT status");
         }
         Objects.requireNonNull(module, "Modul cannot be null");
     }

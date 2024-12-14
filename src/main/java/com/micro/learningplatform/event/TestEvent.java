@@ -20,8 +20,5 @@ public record TestEvent(
         return timestamp;
     }
 
-    @Override
-    public String getEventType() {
-        return "TEST_EVENT";
-    }
+
 }

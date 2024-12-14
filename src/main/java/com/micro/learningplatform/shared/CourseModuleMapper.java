@@ -7,7 +7,7 @@ import com.micro.learningplatform.models.dto.module.ModuleResponse;
 
 public class CourseModuleMapper {
 
-
+/*
     public static ModuleResponse toDTO(CourseModule module) {
         return new ModuleResponse(
                 module.getId() != null ? module.getId().toString() : null,
@@ -36,5 +36,7 @@ public class CourseModuleMapper {
                         .toList()
         );
     }
+    
+ */
 }
 

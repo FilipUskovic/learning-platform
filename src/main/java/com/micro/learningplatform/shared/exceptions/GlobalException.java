@@ -18,45 +18,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static org.zalando.problem.Status.BAD_REQUEST;
-
 @ControllerAdvice
 @RequiredArgsConstructor
 public class GlobalException extends ResponseEntityExceptionHandler {
 
     private final MeterRegistry meterRegistry;
-
-
-
-
-
-    @ExceptionHandler(CourseNotFoundException.class)
-    public ProblemDetail handleCourseNotFound(
-            CourseNotFoundException ex, WebRequest request) {
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Course Not Found");
-        problemDetail.setInstance(URI.create(request.getDescription(false)));
-        return problemDetail;
-    }
-
-    @ExceptionHandler(CourseValidationException.class)
-    public ResponseEntity<ValidationErrorResponse> handleValidationException(
-            CourseValidationException ex) {
-
-        ValidationErrorResponse response = new ValidationErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Validation failed",
-                ex.getViolations(),
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity
-                .badRequest()
-                .body(response);
-    }
-
 
 
     @Override
@@ -75,38 +41,41 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         ValidationErrorResponse error = new ValidationErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation failed",
-                errors,
-                LocalDateTime.now()
+                errors
         );
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    // Obrada CourseNotFoundException
+    @ExceptionHandler(CourseNotFoundException.class)
+    public ProblemDetail handleCourseNotFound(
+            CourseNotFoundException ex, WebRequest request) {
 
-    // events
-
-    @ExceptionHandler(DomainException.class)
-    public ResponseEntity<Problem> handleDomainException(DomainException ex, WebRequest request) {
-        recordError(ex);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Problem.builder()
-                        .withTitle("Domain Error")
-                        .withStatus(BAD_REQUEST)
-                        .withDetail(ex.getMessage())
-                        .withInstance(URI.create(request.getContextPath()))
-                        .build());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Course Not Found");
+        problemDetail.setInstance(URI.create(request.getDescription(false)));
+        return problemDetail;
     }
 
-    private void recordError(Exception ex) {
-        meterRegistry.counter("application.error",
-                        "type", ex.getClass().getSimpleName(),
-                        "message", ex.getMessage())
-                .increment();
+    // Obrada CourseValidationException
+    @ExceptionHandler(CourseValidationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleValidationException(
+            CourseValidationException ex) {
+
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                ex.getViolations()
+        );
+
+        return ResponseEntity
+                .badRequest()
+                .body(response);
     }
 
-    // validation
-
+    // Obrada ValidationException
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<Problem> handleValidation(
             ValidationException ex,
@@ -115,8 +84,7 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         ValidationErrorResponse error = new ValidationErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation failed",
-                Collections.singletonList(ex.getMessage()),
-                LocalDateTime.now()
+                Collections.singletonList(ex.getMessage())
         );
 
         return ResponseEntity
@@ -126,9 +94,15 @@ public class GlobalException extends ResponseEntityExceptionHandler {
                         .withTitle("Validation Error")
                         .withDetail(ex.getMessage())
                         .withInstance(URI.create(request.getDescription(false)))
-                        .with("errors", error.getViolations())
+                        .with("errors", error.violations())
                         .build());
     }
 
+    private void recordError(Exception ex) {
+        meterRegistry.counter("application.error",
+                        "type", ex.getClass().getSimpleName(),
+                        "message", ex.getMessage())
+                .increment();
+    }
 
 }

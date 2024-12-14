@@ -1,22 +1,19 @@
 package com.micro.learningplatform.services;
 
-import com.micro.learningplatform.event.course.CourseStatusChangedEvent;
-import com.micro.learningplatform.models.Course;
-import com.micro.learningplatform.models.CourseModule;
-import com.micro.learningplatform.models.CourseStatisticHistory;
-import com.micro.learningplatform.models.CourseStatus;
+import com.micro.learningplatform.models.*;
 import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
+import com.micro.learningplatform.models.dto.module.ModuleDetailResponse;
 import com.micro.learningplatform.repositories.CourseRepository;
 import com.micro.learningplatform.repositories.CustomCourseRepoImpl;
+import com.micro.learningplatform.repositories.ModuleRepositroy;
 import com.micro.learningplatform.shared.CourseMapper;
-import com.micro.learningplatform.shared.exceptions.CourseAlreadyExistsException;
-import com.micro.learningplatform.shared.exceptions.CourseNotFoundException;
-import com.micro.learningplatform.shared.exceptions.RepositoryException;
+import com.micro.learningplatform.shared.exceptions.*;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.service.spi.ServiceException;
+import org.hibernate.annotations.Cache;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -26,12 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.micro.learningplatform.models.Course.create;
-import static com.micro.learningplatform.shared.CourseModuleMapper.toResponseWithModules;
+
 
 @Service
 @Transactional(readOnly = true)
@@ -41,58 +39,71 @@ public class CourseServiceImpl implements CourseService {
     private static final Logger log = LogManager.getLogger(CourseServiceImpl.class);
     private final CourseRepository courseRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final EntityManager entityManager;
     private final CustomCourseRepoImpl customCourseRepo;
+    private final ModuleRepositroy moduleRepository;
 
     @Override
+    @Transactional
     public CourseResponse createCourse(CreateCourseRequest createCourseRequest) {
-     /// Validacija poslovnih pravila
-        validateNewCourseTitle(createCourseRequest.title());
+        log.debug("Creating new course with title: {}", createCourseRequest.title());
 
-        // Kreiranje kursa kroz factory metodu koja već postavlja
-        // kategoriju i inicijalizira statistike
-        Course course = Course.create(
-                createCourseRequest.title(),
-                createCourseRequest.description()
-        );
+        if (courseRepository.existsByTitleIgnoreCase(createCourseRequest.title())) {
+            log.warn("Attempt to create course with existing title: {}", createCourseRequest.title());
+            throw new CourseAlreadyExistsException(
+                    "Course with title '" + createCourseRequest.title() + "' already exists"
+            );
+        }
 
+        Course course = Course.create(createCourseRequest.title(), createCourseRequest.description());
+
+      //  course.assignAuthor(createCourseRequest.authorId());
+        course.setDifficultyLevel(createCourseRequest.getDifficultyLevelEnum());
         course = courseRepository.save(course);
 
-        // Eventi se automatski registriraju kroz domenski model
-        // Ne trebamo eksplicitno publishati event jer je već registriran u Course.create()
+        // Event je već registriran kroz Course.create()
+        // Poslovna pravila specifična za servis
 
+
+        log.info("Successfully created course with ID: {}", course.getId());
         return CourseMapper.toDTO(course);
     }
 
     @Override
+    @Cacheable(cacheNames = "courses", key = "#courseId")
     public CourseResponse getCourse(UUID courseId) {
-        Course course = getCourseById(courseId);
+        log.debug("Fetching course by ID: {}", courseId);
+        Course course = findCourseById(courseId);
         return CourseMapper.toDTO(course);
     }
 
     @Override
+    @Transactional
     public CourseResponse publishCourse(UUID courseId) {
-        Course course = getCourseById(courseId);
+        log.debug("Publishing course with ID: {}", courseId);
+        Course course = findCourseById(courseId);
 
-        // Course.publish će:
-        // 1. Validirati može li se kurs objaviti
-        // 2. Promijeniti status
-        // 3. Registrirati događaj
-        course.publish();
-
+        course.publish(); // Validacija i event registracija se događa u domeni
         course = courseRepository.save(course);
 
+        log.info("Successfully published course with ID: {}", courseId);
         return CourseMapper.toDTO(course);
     }
 
     @Override
     public Page<CourseResponse> search(CourseSearchRequest searchRequest) {
-        return courseRepository
-                .advanceSearchCourses(
-                        searchRequest.searchTerm(),
-                        searchRequest.status(),
-                        searchRequest.getPageable()
-                )
-                .map(CourseMapper::toDTO);
+        log.debug("Performing search with request: {}", searchRequest);
+
+        if (searchRequest.searchTerm() == null && searchRequest.status() != null) {
+            return courseRepository.findByStatus(searchRequest.status(), searchRequest.getPageable())
+                    .map(CourseMapper::toDTO);
+        }
+
+        return courseRepository.advanceSearchCourses(
+                searchRequest.searchTerm(),
+                searchRequest.status(),
+                searchRequest.getPageable()
+        ).map(CourseMapper::toDTO);
     }
 
     @Override
@@ -105,11 +116,11 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<CourseSearchResult> fullTextSearch(String searchTerm) throws RepositoryException {
-        // Koristimo custom repository za full-text pretragu
+        log.debug("Performing full text search with term: {}", searchTerm);
         try {
             return customCourseRepo.fullTextSearch(searchTerm);
         } catch (Exception e) {
-            log.error("Error during full text search: {}", e.getMessage());
+            log.error("Full text search failed for term: {}", searchTerm, e);
             throw new RepositoryException("Full text search failed", e);
         }
     }
@@ -122,148 +133,195 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public CourseResponse getCourseWithModules(UUID id) {
-        Course course = courseRepository.findWithModulesById(id)
-                .orElseThrow(() -> new CourseNotFoundException(id));
-        return CourseMapper.toDTO(course);
+    public CourseResponseWithModules getCourseWithModules(UUID courseId) {
+        log.debug("Fetching course with modules for ID: {}", courseId);
+        Course course = courseRepository.findWithModulesById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        return CourseMapper.toCourseWithModulesResponse(course);
     }
 
     @Override
+    @Transactional
     public void batchSaveCourses(List<CreateCourseRequest> requests) throws RepositoryException {
+        log.debug("Batch saving {} courses", requests.size());
         validateBatchCourseTitles(requests);
 
         try {
-            // Kreiramo Course objekte koristeći factory metodu
             List<Course> courses = requests.stream()
-                    .map(request -> Course.create(
-                            request.title(),
-                            request.description()
-                    ))
+                    .map(request -> Course.create(request.title(), request.description()))
                     .toList();
 
-            // Koristimo custom repository za batch save
             customCourseRepo.batchSave(courses);
+            log.info("Successfully batch saved {} courses", courses.size());
 
-            // Eventi su već registrirani kroz Course.create()
-            log.info("Successfully saved {} courses in batch", courses.size());
         } catch (Exception e) {
-            log.error("Error during batch save: {}", e.getMessage());
-            throw new RepositoryException("Batch save failed", e);
+            log.error("Batch save failed", e);
+            throw new RepositoryException("Failed to batch save courses", e);
         }
+
     }
 
     @Override
     public CourseStatisticsDTO getStatistics(UUID courseId) {
-        Course course = getCourseById(courseId);
+        log.debug("Fetching statistics for course: {}", courseId);
+        Course course = findCourseById(courseId);
 
-        // Koristimo i snapshot i detaljne statistike
         return new CourseStatisticsDTO(
-                course.getId(),
-                course.getTitle(),
                 course.getStatisticsSnapshot().getTotalModules(),
                 course.getStatisticsSnapshot().getTotalDuration(),
-                course.getCourseStatistics().getLastCalculated(),
+                course.getCourseStatistics().getAverageModuleDuration(),
                 course.getCourseStatistics().getCompletionRate(),
-                course.getCourseStatistics().getDifficultyScore()
+                course.getCourseStatistics().getDifficultyScore(),
+                course.getCourseStatistics().getLastCalculated()
         );
     }
 
     @Override
     public CourseResponseWithModules getCourseWithModulesAndStatistics(UUID courseId) {
+        log.debug("Fetching course with modules and statistics for ID: {}", courseId);
         Course course = courseRepository.findWithModulesById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        // Statistike se automatski računaju kroz domenski model
-        return CourseMapper.toDTOWithModules(course);
+        // Osiguravamo da su statistike ažurne
+        course.getCourseStatistics().recalculate(course.getModules());
+
+        return CourseMapper.toCourseWithModulesResponse(course);
     }
 
     @Override
+    @Transactional
     public void addModuleToCourse(UUID courseId, CreateModuleRequest request) {
-        Course course = getCourseById(courseId);
-        log.info("Adding module to course: {}", courseId);
+        log.debug("Adding module to course: {}", courseId);
 
-        // CourseModule.create već validira zahtjev i registrira potrebne evente
+        // Dohvati tečaj
+        Course course = findCourseById(courseId);
+       // entityManager.refresh(course); // refresham course radi sinkronizacije
+        log.debug("Course state after refresh: {}", course.getCourseStatus());
+
+
+        // Kreiraj modul
         CourseModule module = CourseModule.create(request);
+        log.debug("New module created: {}", module);
 
-        // Course.addModule će:
-        // 1. Validirati može li se modul dodati
-        // 2. Ažurirati statistike (snapshot i detaljne)
-        // 3. Kreirati povijesni zapis
-        // 4. Registrirati događaj
+
+        // Postavi `difficultyLevel` ako nije specificiran
+        if (module.getDifficultyLevel() == null) {
+            module.setDifficultyLevel(course.getDifficultyLevel());
+            log.debug("Fallback to course difficulty level: {}", module.getDifficultyLevel());
+
+        }
+
+        assignSequenceNumber(course, module);
+
+        // Dodaj modul u tečaj
         course.addModule(module);
+        log.debug("Module added to course: {}", module);
 
+        // Spremi tečaj
         courseRepository.save(course);
-        log.info("Module added successfully to course: {}", courseId);
-
+        log.info("Successfully added module to course: {}", courseId);
     }
 
+
     @Override
+    @Transactional
     public CourseResponseWithModules createWithModule(CreateCourseRequest courseRequest, List<CreateModuleRequest> moduleRequests) {
-        validateNewCourseTitle(courseRequest.title());
+        log.debug("Creating course with {} modules", moduleRequests.size());
 
-        // Kreiramo kurs
-        Course course = Course.create(
-                courseRequest.title(),
-                courseRequest.description()
-        );
+        if (courseRepository.existsByTitleIgnoreCase(courseRequest.title())) {
+            throw new CourseAlreadyExistsException(
+                    "Course with title '" + courseRequest.title() + "' already exists"
+            );
+        }
 
-        // Dodajemo module koristeći domensku logiku
+        Course course = Course.create(courseRequest.title(), courseRequest.description());
+       // course.assignAuthor(courseRequest.authorId());
+
         moduleRequests.forEach(moduleRequest -> {
             CourseModule module = CourseModule.create(moduleRequest);
             course.addModule(module);
         });
 
         Course savedCourse = courseRepository.save(course);
-        return CourseMapper.toDTOWithModules(savedCourse);
+        log.info("Successfully created course with modules, ID: {}", savedCourse.getId());
+
+        return CourseMapper.toCourseWithModulesResponse(savedCourse);
     }
 
     @Override
+    @Transactional
     public void batchAddCourseWithModules(CreateCourseWithModulesRequest request) {
-        log.info("Creating course with title: {} and {} modules",
+        log.debug("Creating course with title: {} and {} modules",
                 request.title(), request.modules().size());
 
-        try {
-            // Kreiramo kurs
-            Course course = Course.create(
-                    request.title(),
-                    request.description()
-            );
+        Course course = Course.create(request.title(), request.description());
 
-            // Dodajemo module
-            request.modules().forEach(moduleRequest -> {
-                CourseModule module = CourseModule.create(moduleRequest);
-                course.addModule(module);
-            });
+        request.modules().forEach(moduleRequest -> {
+            CourseModule module = CourseModule.create(moduleRequest);
+            course.addModule(module);
+        });
 
-            courseRepository.save(course);
-            log.info("Successfully saved course with {} modules", request.modules().size());
-
-        } catch (Exception e) {
-            log.error("Error during batch course creation: {}", e.getMessage());
-            throw new ServiceException("Failed to create course with modules", e);
-        }
+        courseRepository.save(course);
+        log.info("Successfully created course with {} modules", request.modules().size());
 
     }
 
     @Override
     public List<CourseStatisticHistory> getCourseHistory(UUID courseId, LocalDateTime startDate, LocalDateTime endDate) {
-        Course course = getCourseById(courseId);
+        log.debug("Fetching course history for course: {} between {} and {}",
+                courseId, startDate, endDate);
+        Course course = findCourseById(courseId);
         return course.getStatisticHistory(startDate, endDate);
     }
 
+    @Override
+    public ModuleDetailResponse getModuleDetails(UUID moduleId) {
+        CourseModule module = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new ModuleNotFoundException(moduleId));
 
-    private Course getCourseById(UUID courseId) {
+        // Optimizirano učitavanje svih prerequisita u jednom upitu
+        Map<UUID, CourseModule> prerequisiteModules =
+                moduleRepository.findAllById(module.getPrerequisites())
+                        .stream()
+                        .collect(Collectors.toMap(
+                                CourseModule::getId,
+                                Function.identity()
+                        ));
+
+        return CourseMapper.toModuleDetailResponse(module, prerequisiteModules);
+    }
+
+    @Override
+    public List<CourseResponse> getRecentCoursesByStatus(CourseStatus status) {
+        return courseRepository.findByStatusOrderByCreatedAt(status)
+                .stream()
+                .map(CourseMapper::toDTO)
+                .toList();
+    }
+
+
+    // pretraga po kategoriji i težini koristeći kompozitni indeks
+    @Override
+    public List<CourseResponse> findByCategoryAndDifficultyLevel(String category, String level) {
+        return courseRepository.findByCategoryAndDifficultyLevel(category, level)
+                .stream()
+                .map(CourseMapper::toDTO)
+                .toList();
+    }
+
+    @Override
+    public Page<CourseResponse> searchByTerm(String searchTerm, Pageable pageable) {
+        return courseRepository.searchCourses(searchTerm, pageable)
+                .map(CourseMapper::toDTO);
+    }
+
+
+    private Course findCourseById(UUID courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
     }
 
-    private void validateNewCourseTitle(String title) {
-        if (courseRepository.existsByTitleIgnoreCase(title)) {
-            throw new CourseAlreadyExistsException(
-                    "Course with title '" + title + "' already exists"
-            );
-        }
-    }
 
     private void validateBatchCourseTitles(List<CreateCourseRequest> requests) {
         Set<String> titles = requests.stream()
@@ -276,6 +334,56 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
+    private void assignSequenceNumber(Course course, CourseModule module) {
+        // Ako `sequenceNumber` nije postavljen, automatski ga generiraj
+        List<CourseModule> existingModules = moduleRepository.findByCourseId(course.getId());
+        log.info("existingModules {}", existingModules);
+        // Ako korisnik nije postavio `sequenceNumber`, automatski ga generiraj
+        if (module.getSequenceNumber() == null) {
+            int maxSequenceNumber = existingModules.stream()
+                    .mapToInt(CourseModule::getSequenceNumber)
+                    .max()
+                    .orElse(0);
+            module.setSequenceNumber(maxSequenceNumber + 1);
+        }
+
+        // Provjera duplikata
+        boolean exists = existingModules.stream()
+                .anyMatch(existingModule -> existingModule.getSequenceNumber().equals(module.getSequenceNumber()));
+        if (exists) {
+            throw new IllegalArgumentException("Module with the same sequence number already exists");
+        }
+    }
+
+    // TODO smanjti broj slicni metoda npr dodati opcionalne parametere s bolje razrađenimk reopstirojem
+/*
+    private Course fetchCourse(UUID id, boolean includeModules, boolean includeStatistics) {
+        if (includeModules && includeStatistics) {
+            return courseRepository.findWithModulesById(id)
+                    .orElseThrow(() -> new CourseNotFoundException(id));
+        } else if (includeStatistics) {
+            return courseRepository.findByIdWithStatistics(id)
+                    .orElseThrow(() -> new CourseNotFoundException(id));
+        }
+        return findCourseById(id);
+    }
+
+ */
+
+/*
+    // Servis za inicijalizaciju detaljnih statistika
+    @Transactional
+    public void recalculateStatistics(UUID courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        if (course.getModules().isEmpty()) {
+            throw new CourseValidationException("Cannot calculate statistics for a course without modules");
+        }
+        course.getCourseStatistics().recalculate(course.getModules());
+        courseRepository.save(course);
+    }
+
+ */
 
 /*
     @Override

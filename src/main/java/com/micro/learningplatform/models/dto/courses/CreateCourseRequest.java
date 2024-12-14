@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public record CreateCourseRequest(
 
         @NotBlank(message = "Title is required")
@@ -15,9 +17,11 @@ public record CreateCourseRequest(
 
         @NotNull(message = "Difficulty level is required")
         String difficultyLevel // umjesto enuma cemo korsiti string i napravili smo metodu koka vraca vrijednost enuma
-      //  DifficultyLevel difficultyLevel
+        //  DifficultyLevel difficultyLevel
 
 
+      //  @NotNull(message = "Author ID is required")
+     //  UUID authorId // Novo polje za validaciju autora
         /*
         @NotBlank (message = "Title must be provided!")
         @Size(min = 1, max = 200, message = "Title must be between 1 and 200 characters" )
@@ -29,7 +33,7 @@ public record CreateCourseRequest(
 ) {
 
         public DifficultyLevel getDifficultyLevelEnum() {
-                return DifficultyLevel.valueOf(difficultyLevel);
+                return DifficultyLevel.valueOf(difficultyLevel.toUpperCase());
         }
 
 }

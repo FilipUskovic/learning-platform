@@ -4,6 +4,7 @@ import com.micro.learningplatform.models.CourseStatisticHistory;
 import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
+import com.micro.learningplatform.models.dto.module.ModuleDetailResponse;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +29,7 @@ public interface CourseService {
 
     Page<CourseResponse> findByStatus(CourseStatus status, Pageable pageable);
 
-    CourseResponse getCourseWithModules(UUID id);
+    CourseResponseWithModules getCourseWithModules(UUID id);
 
    void batchSaveCourses(List<CreateCourseRequest> requests) throws RepositoryException;
 
@@ -43,6 +44,14 @@ public interface CourseService {
     void batchAddCourseWithModules(CreateCourseWithModulesRequest request);
 
     List<CourseStatisticHistory> getCourseHistory(UUID courseId, LocalDateTime startDate, LocalDateTime endDate);
+
+    ModuleDetailResponse getModuleDetails(UUID moduleId);
+
+    List<CourseResponse> getRecentCoursesByStatus(CourseStatus status); // S @QueryHints za caching
+    // S @QueryHints za caching
+    List<CourseResponse> findByCategoryAndDifficultyLevel(String category, String level); // S indeks optimizacijom
+
+    Page<CourseResponse> searchByTerm(String searchTerm, Pageable pageable);
 
 
 }

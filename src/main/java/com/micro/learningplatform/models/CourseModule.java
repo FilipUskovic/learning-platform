@@ -4,6 +4,7 @@ import com.micro.learningplatform.event.module.ModuleContentUpdatedEvent;
 import com.micro.learningplatform.event.module.ModuleCreatedEvent;
 import com.micro.learningplatform.event.module.ModulePrerequisiteAddedEvent;
 import com.micro.learningplatform.event.module.ModuleStatusChangedEvent;
+import com.micro.learningplatform.models.dto.DifficultyLevel;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.models.dto.module.ModuleData;
 import com.micro.learningplatform.models.dto.module.UpdateModuleRequest;
@@ -26,7 +27,7 @@ import java.util.*;
 @Entity
 @Table(name = "course_modules")
 @Getter
-@Setter(AccessLevel.PROTECTED)
+@Setter
 @AllArgsConstructor
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class CourseModule extends BaseModel {
@@ -93,8 +94,10 @@ public class CourseModule extends BaseModel {
         module.setTitle(request.title());
         module.setDescription(request.description());
         module.setSequenceNumber(request.sequenceNumber());
-        module.setDuration(request.duration());
+        module.setDuration(request.getDuration());
         module.setStatus(ModuleStatus.DRAFT);
+        // DifficultyLevel će biti postavljen kasnije
+
         module.registerEvent(new ModuleCreatedEvent(module.getId()));
         return module;
     }
@@ -149,7 +152,7 @@ public class CourseModule extends BaseModel {
         Objects.requireNonNull(request, "Request cannot be null");
         Objects.requireNonNull(request.title(), "Title of modula is needed");
 
-        if (request.duration() != null && request.duration().compareTo(MINIMUM_DURATION) < 0) {
+        if (request.getDuration() != null && request.getDuration().compareTo(MINIMUM_DURATION) < 0) {
             throw new ModuleValidationException(
                     "Duration of modules have to be at least " + MINIMUM_DURATION.toMinutes() + " min"
             );

@@ -22,7 +22,7 @@ public class CourseStatisticService {
 
     private final CourseRepository courseRepository;
     private final CourseStatisticsHistoryRepository statisticRepo;
-
+/*
     @Transactional
     public void createSnapShot(UUID courseId) {
         log.debug("Attempting to create snapshot for course ID: {}", courseId);
@@ -38,6 +38,8 @@ public class CourseStatisticService {
 
 
     }
+
+ */
 
     public List<CourseStatisticHistory> getStatisticsHistory(
             UUID courseId,

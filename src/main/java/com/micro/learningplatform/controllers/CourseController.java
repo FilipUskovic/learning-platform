@@ -37,7 +37,7 @@ public class CourseController {
             CourseResponse response = courseService.createCourse(request);
 
         return ResponseEntity
-                .created(URI.create("/api/v1/courses/" + response.publicId()))
+                .created(URI.create("/api/v1/courses/" + response.id()))
                 .body(response);
     }
 
@@ -45,6 +45,7 @@ public class CourseController {
     public ResponseEntity<CourseResponse> getCourse(@PathVariable UUID id) {
         return ResponseEntity.ok(courseService.getCourse(id));
     }
+
 
     @PostMapping("/{id}/publish")
     public ResponseEntity<CourseResponse> publishCourse(@PathVariable UUID id){
@@ -87,8 +88,8 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/with-modules")
-    public ResponseEntity<CourseResponse> getCourseWithModules(@PathVariable String id) {
-        return ResponseEntity.ok(courseService.getCourseWithModules(ValidationUtils.parseUUID(id)));
+    public ResponseEntity<CourseResponseWithModules> getCourseWithModules(@PathVariable UUID id) {
+        return ResponseEntity.ok(courseService.getCourseWithModules(id));
     }
 
 
@@ -113,26 +114,43 @@ public class CourseController {
     }
 
     @PostMapping("/{id}/modules")
-    public ResponseEntity<CourseResponse> addModuleToCourse(
-            @PathVariable UUID id, @RequestBody CreateModuleRequest request) {
+    public ResponseEntity<CourseResponseWithModules> addModuleToCourse(
+            @PathVariable UUID id, @Valid @RequestBody CreateModuleRequest request) {
         courseService.addModuleToCourse(id, request);
         return ResponseEntity.ok(courseService.getCourseWithModules(id));
     }
 
+    /*
     @PostMapping("/with-modules")
     public ResponseEntity<CourseResponseWithModules> createCourseWithModules(
-            @RequestBody CreateCourseWithModulesRequest request) {
+            @Valid @RequestBody CreateCourseWithModulesRequest request) {
         CourseResponseWithModules response = courseService.createWithModule(
-                new CreateCourseRequest(request.title(), request.description()),
+                new CreateCourseRequest(request.title(), request.description(), request.difficultyLevel()),
                 request.modules()
         );
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/batch-with-module")
-    public ResponseEntity<String> addCourseWithModules(@RequestBody CreateCourseWithModulesRequest request) {
+     */
+
+
+
+    @PostMapping("/batch-with-modules")
+    public ResponseEntity<String> batchAddCoursesWithModules(@RequestBody CreateCourseWithModulesRequest request) {
         courseService.batchAddCourseWithModules(request);
-        return ResponseEntity.ok("Course with modules created successfully.");
+        return ResponseEntity.ok("Courses with modules created successfully.");
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<CourseResponse>> findByCategoryAndDifficulty(
+            @RequestParam String category,
+            @RequestParam String difficultyLevel) {
+        return ResponseEntity.ok(courseService.findByCategoryAndDifficultyLevel(category, difficultyLevel));
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<CourseResponse>> getRecentCourses(
+            @RequestParam CourseStatus status) {
+        return ResponseEntity.ok(courseService.getRecentCoursesByStatus(status));
     }
 }

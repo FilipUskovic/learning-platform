@@ -7,32 +7,33 @@ import com.micro.learningplatform.models.dto.DifficultyLevel;
 import com.micro.learningplatform.models.dto.coursestatistic.CourseStatisticsSnapshotDTO;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 public record CourseResponse(
-
-        String id,
-        String title,
-        String description,
-        CourseStatus status,
-        EntityCategory category,
-        DifficultyLevel difficultyLevel,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-        CourseStatisticsSnapshotDTO statistics,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
-){
-        /*
-        // publicId string umjesto UUID-a smanjujem izlaganje internih detalja, medu ostalom enkapsulaija podatka
-        String publicId,
-        String title,
-        String description,
-        CourseStatus status,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-        LocalDateTime createdAt
-        ) {
-
+        /** Pokusao sam razmisliti dali zelim String korsisti umjesto UUID-a
+         * String je zauzima manje memoriski prostor, ali s druge strane moramo potrebna konverzija u uuid i dodatna validacija
+         * Pošto je nama bitna konzistetnos podatka jer cemo kasnije prijeci na microsrvis arch
+         *  -> i app vec ima snazan kopleksni domensku logiku i kompleksnu event strukutur
+         *   Zadrzavamo UUUID I enum umjesto stringa jer :
+         *   1- UUID -> zbog tipske sigurnosti i i konzistetnosti s domenom
+         *   2. korisitmo enum jer je dio domenske logike i ima validaciju i tipsku sigurnost
+         *
          */
+        UUID id,
+        String title,
+        String description,
+        CourseStatus status,
+        EntityCategory category,  // Zadržavamo enum za validaciju i tipsku sigurnost
+        DifficultyLevel difficultyLevel,
+        CourseStatisticsDTO statistics,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+        LocalDateTime createdAt,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+        LocalDateTime updatedAt
+
+){
+
 }
 
 
