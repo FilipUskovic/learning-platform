@@ -15,10 +15,11 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cache;
 import java.time.Duration;
@@ -41,6 +42,7 @@ public class CourseModule extends BaseModel {
      */
 
     private static final Duration MINIMUM_DURATION = Duration.ofMinutes(5);
+    private static final Logger log = LogManager.getLogger(CourseModule.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -97,6 +99,10 @@ public class CourseModule extends BaseModel {
         module.setDuration(request.getDuration());
         module.setStatus(ModuleStatus.DRAFT);
         // DifficultyLevel će biti postavljen kasnije
+        if (request.difficultyLevel() != null) {
+            log.debug("Setting difficultyLevel from request: {}", request.difficultyLevel());
+            module.setDifficultyLevel(request.difficultyLevel());
+        }
 
         module.registerEvent(new ModuleCreatedEvent(module.getId()));
         return module;
@@ -188,7 +194,21 @@ public class CourseModule extends BaseModel {
         return metadata;
     }
 
-   /*
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        CourseModule that = (CourseModule) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id);
+    }
+
+    /*
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID Id;

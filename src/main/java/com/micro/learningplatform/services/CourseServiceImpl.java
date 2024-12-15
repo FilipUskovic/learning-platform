@@ -13,7 +13,6 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.annotations.Cache;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -22,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,6 +38,8 @@ public class CourseServiceImpl implements CourseService {
     private final EntityManager entityManager;
     private final CustomCourseRepoImpl customCourseRepo;
     private final ModuleRepositroy moduleRepository;
+
+    // TODO dodati update i delete metode
 
     @Override
     @Transactional
@@ -80,13 +78,15 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public CourseResponse publishCourse(UUID courseId) {
-        log.debug("Publishing course with ID: {}", courseId);
-        Course course = findCourseById(courseId);
+        Course course = findCourseWithModuleById(courseId);
 
-        course.publish(); // Validacija i event registracija se događa u domeni
-        course = courseRepository.save(course);
+        log.debug("Modules in course: {}", course.getModules());
+
+        // Poslovna logika unutar domenskog modela
+        course.publish();
 
         log.info("Successfully published course with ID: {}", courseId);
+
         return CourseMapper.toDTO(course);
     }
 
@@ -114,6 +114,7 @@ public class CourseServiceImpl implements CourseService {
                 .map(CourseMapper::toDTO);
     }
 
+    //todo vijedti zasto mi vraca za course name id
     @Override
     public List<CourseSearchResult> fullTextSearch(String searchTerm) throws RepositoryException {
         log.debug("Performing full text search with term: {}", searchTerm);
@@ -141,6 +142,7 @@ public class CourseServiceImpl implements CourseService {
         return CourseMapper.toCourseWithModulesResponse(course);
     }
 
+    //todo dodati difficulty leevl
     @Override
     @Transactional
     public void batchSaveCourses(List<CreateCourseRequest> requests) throws RepositoryException {
@@ -189,41 +191,49 @@ public class CourseServiceImpl implements CourseService {
         return CourseMapper.toCourseWithModulesResponse(course);
     }
 
+    //TODO prequsitide spremati u tablicu
     @Override
     @Transactional
     public void addModuleToCourse(UUID courseId, CreateModuleRequest request) {
         log.debug("Adding module to course: {}", courseId);
 
         // Dohvati tečaj
-        Course course = findCourseById(courseId);
-       // entityManager.refresh(course); // refresham course radi sinkronizacije
-        log.debug("Course state after refresh: {}", course.getCourseStatus());
-
+        Course course = findCourseWithModuleById(courseId);
+        log.debug("Course state after fetch: {}", course.getCourseStatus());
+        log.debug("Modules in course after fetch: {}", course.getModules());
 
         // Kreiraj modul
         CourseModule module = CourseModule.create(request);
         log.debug("New module created: {}", module);
 
+        // Provjeri duplikat naslova
+        boolean duplicateTitleExists = course.getModules().stream()
+                .anyMatch(existingModule -> existingModule.getTitle().equalsIgnoreCase(module.getTitle()));
+        if (duplicateTitleExists) {
+            log.error("Module with the same title already exists: {}", module.getTitle());
+            throw new IllegalArgumentException("Module with the same title already exists");
+        }
 
         // Postavi `difficultyLevel` ako nije specificiran
         if (module.getDifficultyLevel() == null) {
             module.setDifficultyLevel(course.getDifficultyLevel());
             log.debug("Fallback to course difficulty level: {}", module.getDifficultyLevel());
-
         }
 
+        // Postavi sequence number i validiraj
         assignSequenceNumber(course, module);
 
-        // Dodaj modul u tečaj
+        // Dodaj modul u tečaj (koristi domensku metodu)
         course.addModule(module);
         log.debug("Module added to course: {}", module);
 
         // Spremi tečaj
-        courseRepository.save(course);
+        courseRepository.saveAndFlush(course); // Koristi saveAndFlush za sinkronizaciju
         log.info("Successfully added module to course: {}", courseId);
     }
 
 
+    // todo widjeti zasto course samo dio difficutly je null
     @Override
     @Transactional
     public CourseResponseWithModules createWithModule(CreateCourseRequest courseRequest, List<CreateModuleRequest> moduleRequests) {
@@ -322,6 +332,11 @@ public class CourseServiceImpl implements CourseService {
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
     }
 
+    private Course findCourseWithModuleById(UUID courseId) {
+        return courseRepository.findByIdWithModules(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+    }
+
 
     private void validateBatchCourseTitles(List<CreateCourseRequest> requests) {
         Set<String> titles = requests.stream()
@@ -335,25 +350,27 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private void assignSequenceNumber(Course course, CourseModule module) {
-        // Ako `sequenceNumber` nije postavljen, automatski ga generiraj
-        List<CourseModule> existingModules = moduleRepository.findByCourseId(course.getId());
-        log.info("existingModules {}", existingModules);
-        // Ako korisnik nije postavio `sequenceNumber`, automatski ga generiraj
+        Set<CourseModule> existingModules = course.getModules(); // Koristi module iz entiteta
+        log.info("Existing modules from course entity: {}", existingModules);
+
         if (module.getSequenceNumber() == null) {
             int maxSequenceNumber = existingModules.stream()
                     .mapToInt(CourseModule::getSequenceNumber)
                     .max()
                     .orElse(0);
             module.setSequenceNumber(maxSequenceNumber + 1);
+            log.info("Assigned new sequenceNumber: {}", module.getSequenceNumber());
         }
 
-        // Provjera duplikata
         boolean exists = existingModules.stream()
                 .anyMatch(existingModule -> existingModule.getSequenceNumber().equals(module.getSequenceNumber()));
         if (exists) {
+            log.error("Duplicate sequenceNumber {} for module {}", module.getSequenceNumber(), module.getTitle());
             throw new IllegalArgumentException("Module with the same sequence number already exists");
         }
     }
+
+
 
     // TODO smanjti broj slicni metoda npr dodati opcionalne parametere s bolje razrađenimk reopstirojem
 /*

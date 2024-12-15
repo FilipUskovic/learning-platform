@@ -138,8 +138,9 @@ public abstract class BaseModel {
         protected void validateStateChange() {
              log.debug("Validating state change for entity: {}", this);
              log.debug("Editable state check: {}", isEditableState());
-
-             if (!isEditableState()) {
+            if (this instanceof Course) {
+                ((Course) this).validateStateForUpdate();
+            } else if (!isEditableState()) {
                  log.error("Entity is in an invalid state for updates: {}", this);
                  throw new IllegalStateException("Entitet is not in state that allows changes");
              }

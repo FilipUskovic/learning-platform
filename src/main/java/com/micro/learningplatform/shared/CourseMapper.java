@@ -87,7 +87,8 @@ public class CourseMapper {
                 module.getTitle(),
                 module.getSequenceNumber(),
                 module.getDuration(),
-                module.getStatus()
+                module.getStatus(),
+                module.getDifficultyLevel()
         );
     }
 

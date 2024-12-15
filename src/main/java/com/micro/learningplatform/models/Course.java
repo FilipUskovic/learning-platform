@@ -76,7 +76,7 @@ public class Course extends BaseModel{
      */
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sequenceNumber")
+    @OrderBy("sequenceNumber asc")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @ToString.Exclude
     private Set<CourseModule> modules = new HashSet<>();
@@ -176,10 +176,22 @@ public class Course extends BaseModel{
 
    // Provjerava uvjete za objavu, mijenja status i registrira događaj promjene statusa.
     public void publish() {
+        if (!this.courseStatus.canTransitionTo(CourseStatus.PUBLISHED)) {
+            throw new IllegalStateException(
+                    String.format("Transition from %s to %s is not allowed", this.courseStatus, CourseStatus.PUBLISHED)
+            );
+        }
         validateForPublication();
+
         CourseStatus previousStatus = this.courseStatus;
         this.courseStatus = CourseStatus.PUBLISHED;
         registerEvent(new CourseStatusChangedEvent(this.getId(), previousStatus, CourseStatus.PUBLISHED));
+    }
+
+    public void validateStateForUpdate() {
+        if (!isEditableState() && !CourseStatus.PUBLISHED.equals(this.courseStatus)) {
+            throw new IllegalStateException("Invalid state for update.");
+        }
     }
 
 
@@ -212,9 +224,14 @@ public class Course extends BaseModel{
         if (!isEditableState()) {
             throw new CourseStateException("Courses can be published only from DRAFT status");
         }
-        if (modules.size() < MINIMUM_MODULES_FOR_PUBLICATION) {
-            throw new CourseValidationException(Collections.singletonList("Courses must have  atleast " +
-                    MINIMUM_MODULES_FOR_PUBLICATION + " modul for publish"));
+        if (modules.isEmpty()) {
+            throw new CourseValidationException(Collections.singletonList(
+                    "Courses must have at least " + MINIMUM_MODULES_FOR_PUBLICATION + " module(s) for publish"));
+        }
+        // Provjeri da su svi moduli u stanju DRAFT
+        boolean allDraft = modules.stream().allMatch(m -> ModuleStatus.DRAFT.equals(m.getStatus()));
+        if (!allDraft) {
+            throw new CourseValidationException(Collections.singletonList("All modules must be in DRAFT status before publishing"));
         }
     }
 
@@ -251,6 +268,21 @@ public class Course extends BaseModel{
                         history.getSnapshotTimestamp().isBefore(endDate))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Course course = (Course) o;
+        return Objects.equals(Id, course.Id) && Objects.equals(title, course.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), Id, title);
+    }
+
 
 
     /*

@@ -23,6 +23,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     boolean existsByTitleIgnoreCase(String title);
 
+    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.modules WHERE c.Id = :courseId")
+    Optional<Course> findByIdWithModules(@Param("courseId") UUID courseId);
+
     @Query("SELECT c FROM Course c WHERE c.courseStatus = :status ORDER BY c.createdAt DESC")
     Page<Course> findByStatus(@Param("status") CourseStatus status, Pageable pageable);
 
