@@ -93,7 +93,6 @@ public class CourseController {
     }
 
 
-    // todo dodati difcullty levee
     @PostMapping("/batch")
     public ResponseEntity<BatchResponse> batchSaveCourses(
             @Valid @RequestBody List<CreateCourseRequest> requests) throws RepositoryException {
@@ -121,19 +120,16 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getCourseWithModules(id));
     }
 
-    // todo widjeti zasto course samo dio difficutly je null
-    @PostMapping("/with-modules")
-    public ResponseEntity<CourseResponseWithModules> createCourseWithModules(
+    @PostMapping("/with-module")
+    public ResponseEntity<CourseResponseWithModules> createCourseWithModule(
             @Valid @RequestBody CreateCourseWithModulesRequest request) {
         CourseResponseWithModules response = courseService.createWithModule(
                 new CreateCourseRequest(request.title(), request.description(), request.difficultyLevel()),
-                request.modules()
-        );
+                request.modules().getFirst());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 
-    // todo
     @PostMapping("/batch-with-modules")
     public ResponseEntity<String> batchAddCoursesWithModules(@RequestBody CreateCourseWithModulesRequest request) {
         courseService.batchAddCourseWithModules(request);

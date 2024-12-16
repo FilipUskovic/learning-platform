@@ -39,7 +39,7 @@ public interface CourseService {
 
     void addModuleToCourse(UUID courseId, CreateModuleRequest request);
 
-    CourseResponseWithModules createWithModule(CreateCourseRequest createCourseRequest, List<CreateModuleRequest> moduleRequests);
+    CourseResponseWithModules createWithModule(CreateCourseRequest createCourseRequest, CreateModuleRequest moduleRequests);
 
     void batchAddCourseWithModules(CreateCourseWithModulesRequest request);
 

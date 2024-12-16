@@ -1,6 +1,7 @@
 package com.micro.learningplatform.services;
 
 import com.micro.learningplatform.models.*;
+import com.micro.learningplatform.models.dto.DifficultyLevel;
 import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.models.dto.module.ModuleDetailResponse;
@@ -39,7 +40,7 @@ public class CourseServiceImpl implements CourseService {
     private final CustomCourseRepoImpl customCourseRepo;
     private final ModuleRepositroy moduleRepository;
 
-    // TODO dodati update i delete metode
+    // TODO dodati update i delete metode, te provjeriti jos jednom svaku metodu i validacije
 
     @Override
     @Transactional
@@ -142,7 +143,6 @@ public class CourseServiceImpl implements CourseService {
         return CourseMapper.toCourseWithModulesResponse(course);
     }
 
-    //todo dodati difficulty leevl
     @Override
     @Transactional
     public void batchSaveCourses(List<CreateCourseRequest> requests) throws RepositoryException {
@@ -151,9 +151,12 @@ public class CourseServiceImpl implements CourseService {
 
         try {
             List<Course> courses = requests.stream()
-                    .map(request -> Course.create(request.title(), request.description()))
+                    .map(request -> {
+                        Course course = Course.create(request.title(), request.description());
+                        course.setDifficultyLevel(request.getDifficultyLevelEnum());
+                        return course;
+                    })
                     .toList();
-
             customCourseRepo.batchSave(courses);
             log.info("Successfully batch saved {} courses", courses.size());
 
@@ -233,11 +236,10 @@ public class CourseServiceImpl implements CourseService {
     }
 
 
-    // todo widjeti zasto course samo dio difficutly je null
     @Override
     @Transactional
-    public CourseResponseWithModules createWithModule(CreateCourseRequest courseRequest, List<CreateModuleRequest> moduleRequests) {
-        log.debug("Creating course with {} modules", moduleRequests.size());
+    public CourseResponseWithModules createWithModule(CreateCourseRequest courseRequest, CreateModuleRequest moduleRequest) {
+        log.debug("Creating course with {} modules", moduleRequest);
 
         if (courseRepository.existsByTitleIgnoreCase(courseRequest.title())) {
             throw new CourseAlreadyExistsException(
@@ -246,15 +248,19 @@ public class CourseServiceImpl implements CourseService {
         }
 
         Course course = Course.create(courseRequest.title(), courseRequest.description());
+        course.setDifficultyLevel(courseRequest.getDifficultyLevelEnum());
+        log.debug("Course created: {}", course);
        // course.assignAuthor(courseRequest.authorId());
 
-        moduleRequests.forEach(moduleRequest -> {
-            CourseModule module = CourseModule.create(moduleRequest);
-            course.addModule(module);
-        });
+        CourseModule module = CourseModule.create(moduleRequest);
+        checkForDuplicateTitle(course, module);
+        setDifficultyLevelIfNotSpecified(course, module);
+        assignSequenceNumber(course, module);
+
+        course.addModule(module);
 
         Course savedCourse = courseRepository.save(course);
-        log.info("Successfully created course with modules, ID: {}", savedCourse.getId());
+        log.info("Successfully created course with module, ID: {}", savedCourse.getId());
 
         return CourseMapper.toCourseWithModulesResponse(savedCourse);
     }
@@ -266,11 +272,20 @@ public class CourseServiceImpl implements CourseService {
                 request.title(), request.modules().size());
 
         Course course = Course.create(request.title(), request.description());
+        course.setDifficultyLevel(DifficultyLevel.valueOf(request.difficultyLevel()));
 
-        request.modules().forEach(moduleRequest -> {
-            CourseModule module = CourseModule.create(moduleRequest);
-            course.addModule(module);
-        });
+        List<CourseModule> modules = request.modules().stream()
+                .map(moduleRequest -> {
+                    CourseModule module = CourseModule.create(moduleRequest);
+                    checkForDuplicateTitle(course, module);
+                    setDifficultyLevelIfNotSpecified(course, module);
+                    assignSequenceNumber(course, module);
+                    return module;
+                }).toList();
+
+        log.debug("Modules in course after saving: {}", course.getModules().size());
+        moduleRepository.saveAll(modules);
+        modules.forEach(course::addModule);
 
         courseRepository.save(course);
         log.info("Successfully created course with {} modules", request.modules().size());
@@ -346,6 +361,22 @@ public class CourseServiceImpl implements CourseService {
         if (courseRepository.existsByTitleIgnoreCase(titles.toString())) {
             throw new CourseAlreadyExistsException(
                     "One or more courses already exist with the provided titles");
+        }
+    }
+
+    private void checkForDuplicateTitle(Course course, CourseModule module) {
+        boolean duplicateTitleExists = course.getModules().stream()
+                .anyMatch(existingModule -> existingModule.getTitle().equalsIgnoreCase(module.getTitle()));
+        if (duplicateTitleExists) {
+            log.error("Module with the same title already exists: {}", module.getTitle());
+            throw new IllegalArgumentException("Module with the same title already exists");
+        }
+    }
+
+    private void setDifficultyLevelIfNotSpecified(Course course, CourseModule module) {
+        if (module.getDifficultyLevel() == null) {
+            module.setDifficultyLevel(course.getDifficultyLevel());
+            log.debug("Fallback to course difficulty level: {}", module.getDifficultyLevel());
         }
     }
 
