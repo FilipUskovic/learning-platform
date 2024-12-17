@@ -220,6 +220,9 @@ logging:
       SQL: DEBUG
       type.descriptor.sql.BasicBinder: TRACE
     org.springframework.cache: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.validation: TRACE
+    org.springframework.web.servlet.mvc.method.annotation: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

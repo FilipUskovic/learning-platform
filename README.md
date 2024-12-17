@@ -78,9 +78,10 @@ promjenio dtos pazio na ciruralne referenec i uuuid vs string za konverziju [x]
 razimilio o boljoj validicaiji i promjeni mappera i servisa [x]
 
 
-dan 10 []
-proci kroz course servis i testirti svu validaciju []
-testirati i dali rade ispravno []
+dan 10 i 11 [x]
+proci kroz course servis i testirti svu validaciju [x]
+testirati i dali rade ispravno [x]
+
 
 
 
@@ -200,6 +201,9 @@ Event Driven sustav korsiti kombinaciju Spring Event-a i Kafk-u za distribuirane
  -> Base model je indirektno povezan s ovim sustavom kroz entitete koji ga nasljeđuju
     -> Posebno Course model koji generira događaje  
       -> sustav za particioniranje koji upravlja podacima kroz vrijeme gjde basemodel pruza vremenske oznake createtAt i updatedAt
+
+
+ Sto vise dodajem kompleksno to me vise zarinjavaj urace conditionoal 
 
 ### Reference Documentation
 

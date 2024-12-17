@@ -11,7 +11,6 @@ import com.micro.learningplatform.repositories.ModuleRepositroy;
 import com.micro.learningplatform.shared.CourseMapper;
 import com.micro.learningplatform.shared.exceptions.*;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
@@ -19,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -165,16 +165,21 @@ public class CourseServiceImpl implements CourseService {
         validateBatchCourseTitles(requests);
 
         try {
-            List<Course> courses = requests.stream()
+            var courses = requests.stream()
                     .map(request -> {
                         Course course = Course.create(request.title(), request.description());
                         course.setDifficultyLevel(request.getDifficultyLevelEnum());
+                        log.debug("Saving course with title: {}", course.getTitle());
                         return course;
                     })
                     .toList();
+
             customCourseRepo.batchSave(courses);
             log.info("Successfully batch saved {} courses", courses.size());
 
+        } catch (DataIntegrityViolationException ex) {
+            log.error("Duplicate title detected during batch save", ex);
+            throw new CourseAlreadyExistsException("One or more courses already exist with the provided titles.");
         } catch (Exception e) {
             log.error("Batch save failed", e);
             throw new RepositoryException("Failed to batch save courses", e);
@@ -375,15 +380,47 @@ public class CourseServiceImpl implements CourseService {
 
 
     private void validateBatchCourseTitles(List<CreateCourseRequest> requests) {
-        Set<String> titles = requests.stream()
+        var titles = requests.stream()
                 .map(CreateCourseRequest::title)
-                .collect(Collectors.toSet());
+                .filter(title -> title != null && !title.isBlank())
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .toList();
 
-        if (courseRepository.existsByTitleIgnoreCase(titles.toString())) {
-            throw new CourseAlreadyExistsException(
-                    "One or more courses already exist with the provided titles");
+        Set<String> uniqueTitles = new HashSet<>();
+        List<String> duplicates = titles.stream()
+                .filter(title -> !uniqueTitles.add(title))
+                .distinct()
+                .toList();
+
+        if (!duplicates.isEmpty()) {
+            log.error("Duplicate titles found within request: {}", duplicates);
+            throw new CourseAlreadyExistsException("Duplicate titles found in the request: " + duplicates);
+        }
+
+        boolean existsInDatabase = courseRepository.existsByTitleInIgnoreCase(titles);
+        if (existsInDatabase) {
+            log.error("Courses with these titles already exist in the database: {}", titles);
+            throw new CourseAlreadyExistsException("One or more courses already exist with the provided titles.");
         }
     }
+
+       /*
+        List<String> titles = requests.stream()
+                .map(CreateCourseRequest::title)
+                .filter(title -> title != null && !title.isBlank())
+                .toList();
+
+        if (titles.isEmpty()) {
+            throw new CourseValidationException(List.of("All course titles are empty or invalid."));
+        }
+
+        if (courseRepository.existsByTitleInIgnoreCase(titles)) {
+            throw new CourseAlreadyExistsException("One or more courses already exist with the provided titles.");
+        }
+
+        */
+
 
     private void checkForDuplicateTitle(Course course, CourseModule module) {
         boolean duplicateTitleExists = course.getModules().stream()
@@ -422,7 +459,7 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
-
+}
 
     // TODO smanjti broj slicni metoda npr dodati opcionalne parametere s bolje razrađenimk reopstirojem
 /*
@@ -654,4 +691,4 @@ public class CourseServiceImpl implements CourseService {
  */
 
 
-}
+

@@ -21,7 +21,16 @@ import java.util.UUID;
 public interface CourseRepository extends JpaRepository<Course, UUID> {
 
 
+
     boolean existsByTitleIgnoreCase(String title);
+
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END " +
+            "FROM Course c WHERE UPPER(c.title) IN :titles")
+    boolean existsByTitleInIgnoreCase(@Param("titles") List<String> titles);
+
+
+
+
 
     @Query("SELECT c FROM Course c LEFT JOIN FETCH c.modules WHERE c.Id = :courseId")
     Optional<Course> findByIdWithModules(@Param("courseId") UUID courseId);

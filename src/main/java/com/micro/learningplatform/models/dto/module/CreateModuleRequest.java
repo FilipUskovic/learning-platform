@@ -18,7 +18,8 @@ public record CreateModuleRequest(
        // @NotNull(message = "Sequence number is required")
         Integer sequenceNumber,
 
-        @Min(value = 1, message = "Sequence number must be positive")
+        @NotNull(message = "Duration in minutes is required")
+        @Min(value = 1, message = "Duration must be greater than 0")
         Long durationInMinutes,
 
         // isto opcionalno
