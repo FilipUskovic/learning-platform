@@ -27,6 +27,10 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     Optional<Course> findByIdWithModules(@Param("courseId") UUID courseId);
 
     @Query("SELECT c FROM Course c WHERE c.courseStatus = :status ORDER BY c.createdAt DESC")
+    @QueryHints({
+            @QueryHint(name = "org.hibernate.cacheable", value = "true"),
+            @QueryHint(name = "org.hibernate.cacheRegion", value = "course.search")
+    })
     Page<Course> findByStatus(@Param("status") CourseStatus status, Pageable pageable);
 
     @Query("""
@@ -38,17 +42,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @EntityGraph(attributePaths = {"modules"})
     Optional<Course> findWithModulesById(UUID id);
-
-    @Query("""
-        SELECT c FROM Course c
-        WHERE c.courseStatus = :status
-        ORDER BY c.createdAt DESC
-        """)
-    @QueryHints({
-            @QueryHint(name = "org.hibernate.cacheable", value = "true"),
-            @QueryHint(name = "org.hibernate.cacheRegion", value = "course.search")
-    })
-    List<Course> findByStatus(@Param("status") CourseStatus status);
 
 
     @Query("""

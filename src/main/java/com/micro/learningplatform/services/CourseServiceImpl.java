@@ -11,7 +11,10 @@ import com.micro.learningplatform.repositories.ModuleRepositroy;
 import com.micro.learningplatform.shared.CourseMapper;
 import com.micro.learningplatform.shared.exceptions.*;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.cache.annotation.Cacheable;
@@ -53,16 +56,12 @@ public class CourseServiceImpl implements CourseService {
                     "Course with title '" + createCourseRequest.title() + "' already exists"
             );
         }
-
         Course course = Course.create(createCourseRequest.title(), createCourseRequest.description());
-
-      //  course.assignAuthor(createCourseRequest.authorId());
+        //  course.assignAuthor(createCourseRequest.authorId());
         course.setDifficultyLevel(createCourseRequest.getDifficultyLevelEnum());
         course = courseRepository.save(course);
 
         // Event je već registriran kroz Course.create()
-        // Poslovna pravila specifična za servis
-
 
         log.info("Successfully created course with ID: {}", course.getId());
         return CourseMapper.toDTO(course);
@@ -94,45 +93,61 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Page<CourseResponse> search(CourseSearchRequest searchRequest) {
         log.debug("Performing search with request: {}", searchRequest);
+        Page<CourseResponse> result = courseRepository
+                .advanceSearchCourses(searchRequest.searchTerm(),
+                                      searchRequest.status(),
+                                      searchRequest.getPageable())
+                .map(CourseMapper::toDTO);
 
-        if (searchRequest.searchTerm() == null && searchRequest.status() != null) {
-            return courseRepository.findByStatus(searchRequest.status(), searchRequest.getPageable())
-                    .map(CourseMapper::toDTO);
+        if (result.isEmpty()) {
+            throw new ResourceNotFoundException("No resources found for the given search criteria.");
         }
 
-        return courseRepository.advanceSearchCourses(
-                searchRequest.searchTerm(),
-                searchRequest.status(),
-                searchRequest.getPageable()
-        ).map(CourseMapper::toDTO);
+        return result;
     }
 
+    // todo vidjeli treba li mi ovaj serach isto posto imam dva ista prakticiki
+    // te ovo ispraviti     "detail": "Failed to convert 'status' with value: 'draft'",
     @Override
     public Page<CourseResponse> advancedSearch(String searchTerm, CourseStatus status, Pageable pageable) {
-        // Koristimo istu logiku kao i osnovna pretraga, ali s direktnim parametrima
-        return courseRepository
+
+        Page<CourseResponse> result = courseRepository
                 .advanceSearchCourses(searchTerm, status, pageable)
                 .map(CourseMapper::toDTO);
+
+        if (result.isEmpty()) {
+            throw new ResourceNotFoundException("No resources found for the given search criteria.");
+        }
+
+        return result;
     }
 
     //todo vijedti zasto mi vraca za course name id
     @Override
     public List<CourseSearchResult> fullTextSearch(String searchTerm) throws RepositoryException {
         log.debug("Performing full text search with term: {}", searchTerm);
-        try {
-            return customCourseRepo.fullTextSearch(searchTerm);
-        } catch (Exception e) {
-            log.error("Full text search failed for term: {}", searchTerm, e);
-            throw new RepositoryException("Full text search failed", e);
+        log.debug("Performing full text search with term: {}", searchTerm);
+
+        List<CourseSearchResult> results = customCourseRepo.fullTextSearch(searchTerm);
+
+        if (results.isEmpty()) {
+            throw new NoResultException("No results found for the provided search term.");
         }
+        return results;
     }
 
     @Override
     public Page<CourseResponse> findByStatus(CourseStatus status, Pageable pageable) {
-        return courseRepository
+        Page<CourseResponse> result = courseRepository
                 .findByStatus(status, pageable)
                 .map(CourseMapper::toDTO);
+
+        if (result.isEmpty()) {
+            throw new NoResultException("No courses found for the provided status: " + status);
+        }
+        return result;
     }
+
 
     @Override
     public CourseResponseWithModules getCourseWithModules(UUID courseId) {
@@ -180,6 +195,7 @@ public class CourseServiceImpl implements CourseService {
                 course.getCourseStatistics().getDifficultyScore(),
                 course.getCourseStatistics().getLastCalculated()
         );
+
     }
 
     @Override
@@ -319,10 +335,15 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<CourseResponse> getRecentCoursesByStatus(CourseStatus status) {
-        return courseRepository.findByStatusOrderByCreatedAt(status)
+        List<CourseResponse> statues = courseRepository.findByStatusOrderByCreatedAt(status)
                 .stream()
                 .map(CourseMapper::toDTO)
                 .toList();
+        if(statues.isEmpty()){
+            throw new NoResultException("No results found for with status: " + status);
+        }
+        return statues;
+
     }
 
 

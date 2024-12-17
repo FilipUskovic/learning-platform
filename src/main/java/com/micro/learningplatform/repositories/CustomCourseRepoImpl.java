@@ -136,7 +136,7 @@ public class CustomCourseRepoImpl implements CustomCourseRepo {
     public List<CourseSearchResult> fullTextSearch(String searchTerm) throws RepositoryException {
         return executeWithMetrics("fullTextSearch", () -> {
             String sql = """
-                SELECT c.id as id, c.title as title,
+                SELECT c.id as id, c.title as title, c.difficulty_level as difficultyLevel, c.description as description,
                     ts_rank(to_tsvector('english', c.title || ' ' || c.description),
                     plainto_tsquery('english', :searchTerm)) as rank
                 FROM courses c
@@ -160,10 +160,13 @@ public class CustomCourseRepoImpl implements CustomCourseRepo {
     /**
      * Mapira rezultate native querija u CourseSearchResult
      */
-    private CourseSearchResult mapToCourseSearchResult(Object[] tuple) {
+    private CourseSearchResult mapToCourseSearchResult(Object[] row) {
         return new CourseSearchResult(
-                tuple[0].toString(),
-                ((Number) tuple[2]).doubleValue()
+                row[0].toString(),   // ID
+                row[1].toString(),   // Title
+                row[2].toString(),   // Description
+                row[3].toString(),   // Difficulty Level
+                ((Number) row[4]).doubleValue() // rank
         );
     }
 

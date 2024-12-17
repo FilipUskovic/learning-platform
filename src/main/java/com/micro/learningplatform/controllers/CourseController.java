@@ -7,8 +7,11 @@ import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.services.CourseServiceImpl;
 import com.micro.learningplatform.shared.utils.ValidationUtils;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +34,7 @@ public class CourseController {
 
     private final CourseServiceImpl courseService;
 
+    // radi sve ispravno
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(
             @Valid @RequestBody CreateCourseRequest request) {
@@ -41,23 +45,27 @@ public class CourseController {
                 .body(response);
     }
 
+    //radi sve ispravno
     @GetMapping("/{id}")
     public ResponseEntity<CourseResponse> getCourse(@PathVariable UUID id) {
         return ResponseEntity.ok(courseService.getCourse(id));
     }
 
 
+    // radi
     @PostMapping("/{id}/publish")
     public ResponseEntity<CourseResponse> publishCourse(@PathVariable UUID id){
         return ResponseEntity.ok(courseService.publishCourse(id));
     }
 
+    // radi sipravno
     @GetMapping("/search")
     public ResponseEntity<Page<CourseResponse>> searchCourses(
             @Valid CourseSearchRequest request) {
         return ResponseEntity.ok(courseService.search(request));
     }
 
+    // radi osim konvertije draft-a status
     @GetMapping("/advanced-search")
     public ResponseEntity<Page<CourseResponse>> advancedSearch(
             @RequestParam(required = false) String searchTerm,
@@ -67,17 +75,21 @@ public class CourseController {
                 courseService.advancedSearch(searchTerm, status, pageable));
     }
 
-    //todo vraca mi id ne string
+    //radi ispravno
     @GetMapping("/full-text-search")
     public ResponseEntity<List<CourseSearchResult>> fullTextSearch(
             @RequestParam String searchTerm) throws RepositoryException {
-        return ResponseEntity.ok(courseService.fullTextSearch(searchTerm));
+        List<CourseSearchResult> results = courseService.fullTextSearch(searchTerm);
+        return ResponseEntity.ok(results);
     }
 
+    // radi
     @GetMapping("/by-status/{status}")
     public ResponseEntity<Page<CourseResponse>> getCoursesByStatus(
-           // @Parameter(description = "Course status")
-            @PathVariable String status,
+            @Parameter(description = "Course status draft or published")
+            @PathVariable @NotNull(message = "Status cannot be null") String status,
+            @RequestParam @Min(value = 0, message = "Page number cannot be negative.") int page,
+            @RequestParam @Min(value = 1, message = "Page size must be greater than 0.") int size,
             Pageable pageable) {
         return ResponseEntity.ok(
                 Optional.ofNullable(status)
@@ -108,6 +120,7 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getStatistics(id));
     }
 
+    // radi
     @GetMapping("/{id}/with-modules-and-statistics")
     public ResponseEntity<CourseResponseWithModules> getCourseWithModulesAndStatistics(@PathVariable UUID id) {
         return ResponseEntity.ok(courseService.getCourseWithModulesAndStatistics(id));
@@ -120,6 +133,7 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getCourseWithModules(id));
     }
 
+    // radi
     @PostMapping("/with-module")
     public ResponseEntity<CourseResponseWithModules> createCourseWithModule(
             @Valid @RequestBody CreateCourseWithModulesRequest request) {
@@ -128,6 +142,7 @@ public class CourseController {
                 request.modules().getFirst());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 
 
     @PostMapping("/batch-with-modules")
