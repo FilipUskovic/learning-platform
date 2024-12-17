@@ -378,7 +378,6 @@ public class CourseServiceImpl implements CourseService {
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
     }
 
-
     private void validateBatchCourseTitles(List<CreateCourseRequest> requests) {
         var titles = requests.stream()
                 .map(CreateCourseRequest::title)

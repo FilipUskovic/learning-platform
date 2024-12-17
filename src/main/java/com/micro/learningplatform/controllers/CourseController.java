@@ -103,7 +103,6 @@ public class CourseController {
         );
     }
 
-
     // radi
     @GetMapping("/{id}/with-modules")
     public ResponseEntity<CourseResponseWithModules> getCourseWithModules(@PathVariable UUID id) {

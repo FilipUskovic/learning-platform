@@ -63,9 +63,8 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         if (ex instanceof HandlerMethodValidationException validationException) {
             log.error("HandlerMethodValidationException: {}", ex.getMessage());
 
-            // Prikupljanje poruka o greškama
             List<String> errors = validationException.getAllErrors().stream()
-                    .map(error -> error.getDefaultMessage())
+                    .map(MessageSourceResolvable::getDefaultMessage)
                     .toList();
 
             ValidationErrorResponse response = new ValidationErrorResponse(
@@ -80,7 +79,6 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         // Sve ostale greške proslijedi default handleru
         return super.handleExceptionInternal(ex, body, headers, status, request);
     }
-
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, WebRequest request) {
