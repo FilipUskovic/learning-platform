@@ -230,20 +230,8 @@ public class CourseServiceImpl implements CourseService {
         CourseModule module = CourseModule.create(request);
         log.debug("New module created: {}", module);
 
-        // Provjeri duplikat naslova
-        boolean duplicateTitleExists = course.getModules().stream()
-                .anyMatch(existingModule -> existingModule.getTitle().equalsIgnoreCase(module.getTitle()));
-        if (duplicateTitleExists) {
-            log.error("Module with the same title already exists: {}", module.getTitle());
-            throw new IllegalArgumentException("Module with the same title already exists");
-        }
-
-        // Postavi `difficultyLevel` ako nije specificiran
-        if (module.getDifficultyLevel() == null) {
-            module.setDifficultyLevel(course.getDifficultyLevel());
-            log.debug("Fallback to course difficulty level: {}", module.getDifficultyLevel());
-        }
-
+        checkForDuplicateTitle(course, module);
+        setDifficultyLevelIfNotSpecified(course, module);
         // Postavi sequence number i validiraj
         assignSequenceNumber(course, module);
 
@@ -292,13 +280,14 @@ public class CourseServiceImpl implements CourseService {
         log.debug("Creating course with title: {} and {} modules",
                 request.title(), request.modules().size());
 
+        validateDuplicateModuleTitlesInRequest(request.modules());
+
         Course course = Course.create(request.title(), request.description());
         course.setDifficultyLevel(DifficultyLevel.valueOf(request.difficultyLevel()));
 
         List<CourseModule> modules = request.modules().stream()
                 .map(moduleRequest -> {
                     CourseModule module = CourseModule.create(moduleRequest);
-                    checkForDuplicateTitle(course, module);
                     setDifficultyLevelIfNotSpecified(course, module);
                     assignSequenceNumber(course, module);
                     return module;
@@ -404,22 +393,30 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
-       /*
-        List<String> titles = requests.stream()
-                .map(CreateCourseRequest::title)
+    private void validateDuplicateModuleTitlesInRequest(List<CreateModuleRequest> modules) {
+        List<String> titles = modules.stream()
+                .map(CreateModuleRequest::title)
                 .filter(title -> title != null && !title.isBlank())
+                .map(String::trim)
+                .map(String::toUpperCase)
                 .toList();
 
-        if (titles.isEmpty()) {
-            throw new CourseValidationException(List.of("All course titles are empty or invalid."));
+        Set<String> uniqueTitles = new HashSet<>();
+        List<String> duplicates = titles.stream()
+                .filter(title -> !uniqueTitles.add(title))
+                .toList();
+
+        if (!duplicates.isEmpty()) {
+            log.error("Duplicate module titles found in request: {}", duplicates);
+            throw new IllegalArgumentException("Duplicate module titles found: " + duplicates);
         }
 
-        if (courseRepository.existsByTitleInIgnoreCase(titles)) {
-            throw new CourseAlreadyExistsException("One or more courses already exist with the provided titles.");
+        boolean duplicatesExist = moduleRepository.existsByTitleInIgnoreCase(titles);
+        if (duplicatesExist) {
+            log.error("Modules with the same titles already exist in the database: {}", titles);
+            throw new IllegalArgumentException("One or more modules already exist with the provided titles.");
         }
-
-        */
-
+    }
 
     private void checkForDuplicateTitle(Course course, CourseModule module) {
         boolean duplicateTitleExists = course.getModules().stream()

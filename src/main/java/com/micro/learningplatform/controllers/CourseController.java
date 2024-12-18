@@ -6,7 +6,6 @@ import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.services.CourseServiceImpl;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
-import com.micro.learningplatform.shared.validation.ValidationErrorResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -153,7 +151,7 @@ public class CourseController {
 
 
 
-    // treba rijesiti dupliciranj module titlova
+    // radi
     @PostMapping("/batch-with-modules")
     public ResponseEntity<String> batchAddCoursesWithModules(@RequestBody @Valid CreateCourseWithModulesRequest request) {
         courseService.batchAddCourseWithModules(request);
