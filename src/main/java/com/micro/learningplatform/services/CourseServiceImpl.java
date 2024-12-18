@@ -96,38 +96,42 @@ public class CourseServiceImpl implements CourseService {
             key = "T(java.util.Objects).hash(#searchCriteria, #pageable)",
             unless = "#result.content.empty"
     )
-    public Page<CourseSearchResultDTO> search(CourseSearchCriteria searchCriteria, Pageable pageable) throws RepositoryException {
+    public Page<?> search(CourseSearchCriteria searchCriteria, Pageable pageable) throws RepositoryException {
         log.debug("Izvršavam pretragu s kriterijima: {}", searchCriteria);
         log.debug("Search term: '{}'", searchCriteria.getSearchTerm());
 
         if (CourseSearchCriteria.SearchType.FULL_TEXT.equals(searchCriteria.getSearchType())) {
+            log.debug("Izvršavam full-text pretragu.");
             List<CourseSearchResult> results = customCourseRepo.fullTextSearch(searchCriteria.getSearchTerm());
+
+            if (results.isEmpty()) {
+                log.warn("Nema rezultata za pretragu: '{}'", searchCriteria.getSearchTerm());
+                throw new NoResultException("No results found for the given search criteria.");
+            }
 
             List<CourseSearchResultDTO> dtos = results.stream()
                     .map(result -> new CourseSearchResultDTO(
-                            result.courseName(),
+                            result.courseId(),
                             result.title(),
                             result.description(),
                             result.difficultyLevel(),
                             result.rank()
                     ))
-                    .collect(Collectors.toList());
-
+                    .toList();
 
             return new PageImpl<>(dtos, pageable, dtos.size());
         }
 
-        // Za standardnu pretragu transformiramo Course u CourseSearchResultDTO
-        return courseRepository
+        Page<CourseResponse> result = courseRepository
                 .searchCoursesWithOther(searchCriteria.getSearchTerm(), pageable)
-                .map(course -> new CourseSearchResultDTO(
-                        course.getId().toString(),
-                        course.getTitle(),
-                        course.getDescription(),
-                        course.getDifficultyLevel().toString(),
-                        1.0 // defaultna relevantnost za standardnu pretragu
-                ));
+                .map(this::mapToCourseResponse);
 
+        if (result.isEmpty()) {
+            log.warn("Nema rezultata za standardnu pretragu: '{}'", searchCriteria.getSearchTerm());
+            throw new NoResultException("No results found for the given search criteria.");
+        }
+
+        return result;
     }
 /*
     @Override
@@ -462,6 +466,23 @@ public class CourseServiceImpl implements CourseService {
             log.error("Duplicate sequenceNumber {} for module {}", module.getSequenceNumber(), module.getTitle());
             throw new IllegalArgumentException("Module with the same sequence number already exists");
         }
+    }
+
+    private CourseResponse mapToCourseResponse(Course course) {
+        return new CourseResponse(
+                course.getId(),
+                course.getTitle(),
+                course.getDescription(),
+                course.getCourseStatus(),
+                course.getCategory(),
+                course.getDifficultyLevel(),
+                CourseMapper.toStatisticsDTO(
+                        course.getStatisticsSnapshot(),
+                        course.getCourseStatistics()
+                ),
+                course.getCreatedAt(),
+                course.getUpdatedAt()
+        );
     }
 
 }

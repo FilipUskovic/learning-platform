@@ -62,7 +62,7 @@ public class CourseController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<CourseSearchResultDTO>> searchCourses(
+    public ResponseEntity<Page<?>> searchCourses(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) CourseStatus status,
             @RequestParam(required = false) String category,

@@ -102,7 +102,7 @@ public class CourseMapper {
         );
     }
 
-    private static CourseStatisticsDTO toStatisticsDTO(
+    public static CourseStatisticsDTO toStatisticsDTO(
             CourseStatisticsSnapshot snapshot,
             CourseStatistics statistics) {
         return new CourseStatisticsDTO(

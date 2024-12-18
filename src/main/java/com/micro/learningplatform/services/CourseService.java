@@ -29,7 +29,7 @@ public interface CourseService {
     Page<CourseResponse> searchByTerm(String searchTerm, Pageable pageable);
      */
 
-    Page<CourseSearchResultDTO> search(CourseSearchCriteria searchCriteria, Pageable pageRequest) throws RepositoryException;
+    Page<?> search(CourseSearchCriteria searchCriteria, Pageable pageRequest) throws RepositoryException;
 
     Page<CourseResponse> findByStatus(CourseStatus status, Pageable pageable);
 
