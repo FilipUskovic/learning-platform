@@ -111,45 +111,15 @@ public class CourseStatistics {
         this.difficultyScore = BigDecimal.valueOf(totalDifficultyScore)
                 .divide(BigDecimal.valueOf(modules.size()), 2, RoundingMode.HALF_UP);
     }
-}
 
-
-    /*
-    @Column(name = "total_modules")
-    private int totalModules;
-
-    @Column(name = "total_duration")
-    private Duration totalDuration;
-
-    @Column(name = "last_calculated")
-    private LocalDateTime lastCalculated;
-
-    @Column(name = "average_module_duration")
-    private Duration averageModuleDuration;
-
-
-
-    protected CourseStatistics() {
-        this.totalModules = 0;
-        this.totalDuration = Duration.ZERO;
-        this.lastCalculated = LocalDateTime.now();
-    }
-
-    public void recalculate(List<CourseModule> modules) {
-        this.totalModules = modules.size();
-        this.totalDuration = modules.stream()
-                .map(CourseModule::getDuration)
-                .reduce(Duration.ZERO, Duration::plus);
-        this.lastCalculated = LocalDateTime.now();
-
-        if (!modules.isEmpty()) {
-            this.averageModuleDuration = this.totalDuration.dividedBy(modules.size());
-        } else {
-            this.averageModuleDuration = Duration.ZERO;
+    @PrePersist
+    @PreUpdate
+    protected void validate() {
+        if (completionRate != null &&
+                (completionRate.compareTo(BigDecimal.ZERO) < 0 ||
+                        completionRate.compareTo(BigDecimal.valueOf(100)) > 0)) {
+            throw new IllegalStateException("Completion rate must be between 0 and 100");
         }
-
-        this.lastCalculated = LocalDateTime.now();
     }
-
-     */
+}
 

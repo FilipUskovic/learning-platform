@@ -19,7 +19,8 @@ public class CourseStatisticsSnapshot {
     @Column(name = "total_duration")
     private Duration totalDuration;
 
-    public void incrementModuleCount() {
+    // zaštitu za konkurentne operacije:
+    public synchronized void  incrementModuleCount() {
         totalModules++;
     }
 

@@ -81,6 +81,20 @@ razimilio o boljoj validicaiji i promjeni mappera i servisa [x]
 dan 10 i 11 [x]
 proci kroz course servis i testirti svu validaciju [x]
 testirati i dali rade ispravno [x]
+pratidi ddd prinicpe i dry [x]
+odvojiti validaciju domensku poslovnu [x]
+kesiranje paginiranje, izolacija i propagacija servisa [x]
+
+
+dan 12 []
+zapoceti s securitijem
+implemetirati jwt [] 
+implementir o2auth []
+
+
+dan 13 []
+
+poceti dijeliti u microservise
 
 
 
@@ -203,7 +217,88 @@ Event Driven sustav korsiti kombinaciju Spring Event-a i Kafk-u za distribuirane
       -> sustav za particioniranje koji upravlja podacima kroz vrijeme gjde basemodel pruza vremenske oznake createtAt i updatedAt
 
 
- Sto vise dodajem kompleksno to me vise zarinjavaj urace conditionoal 
+ Sto vise dodajem kompleksno to me vise zarinjavaju race conditionoal 
+
+dan 11 kraj
+
+   BaseModel i Event sustav
+ - basemodel implementira event-driven pristup
+    * eventi se skupljaju tijekom zivotnog ciklusa entiteta
+    * korsiti jpa lifecycle callbacks za sinkronizaciju s tranzakcijama
+    * hashet omoguej jedinstvenos dogadaja
+   
+- Brze statistike (Snapshot): 
+    * Embeddable za brzi pristup
+    * Atomske operacije za azuriranje 
+  
+- CourseStatistics
+    * zaseban entiet za slozene kalkulacije pratimo normalizaciju baza
+    * djeljeni primary key za optimizaciju putem @mapsId
+    * lazy loading za bolje performance
+  
+- pojesne statistike
+  * Optimizirano ucitavanje 
+  * automatsko sortiranje 
+  * laydloading referenci
+
+- Integracija s kafak sustavom
+  * funkcionalno pristup obradi dogadaja
+  * error handling kroz result tip
+  * asinkrona obrada
+  * Automatsko bilježenje vremena događaja
+  * integraciju s Kafka sistemom za distribuirane događaje
+
+- valdicaciski sustav
+  * validacija na razini servisa 
+  * custom servisi validacije za specijalne slucajeve
+  * rukovanje batch operacijama
+
+- course repositroy 
+   * korsitenje left join fetch za izbjegavanje N + 1 problema
+   * implementacije "second-level" kesiranja krot query hits
+   * korsitenje indexa a optimizaciju upita
+   * fleksibilno i dinamicko predrazivanje s cruteriaAPI
+   * paginacija rezultata
+
+- custom repostory
+  * implementacija za pracenje metrika  performansi
+  * error hanldeing
+  * micrometer za monotoring
+
+- takoder u application.yml file-u imam
+  * batch processing config
+  * query plan kesiranje
+  * connection pool optimizacija
+  * hibernate second cache level config
+
+
+- modularni prisutpi , enumiracije i validacija sustav
+  * Osiguravam tipksu sigurnost i nevalidne rijednosti
+  * validacija poslovnih pravila na razini entite-a
+  * rovjeru integriteta podatka i validaciska pravula
+
+- 
+
+- dosadasnje objasnjeja :
+  -> Korsitim domain driven design, gdje korsitim i evente, sto znaci da sam svu odgovorsnot za dogadaje premjestio u domneske modele
+ * takoder imam smanjenu ovisnot o servisnom sloju jer domenska logika se radu u domenama "enteti klasama"
+ * Pazio sam koliko mogu na optimizaciju pa sam korsiti snapshot aka brzu statisku i detaljnu statisku ako korisnik zatreba ili sustav
+ * Base model nasljeduju svi enteti
+ * Integrirani s kafkom (treba jos optimizirati i prosiriti)
+ * Imamo custom validacije i odvojenje servis i domenske validacije
+ * tok dogadaja kroz sustav trenutno izgleda ovako :
+ * 1. domenski odle registira dogadaje -> eventi se skupljaju tijekom tranzakcije -> nakon uspijesnje tranzakcije ogadaji se objavljuju kroz kafku
+        -> sve se prati kroz metrike i logiranje
+ * korsiti second leve kes za entiete 
+
+- 
+
+ -> to nam sve za sada omogucje da pratimo DDD prinicpe, optimiziramo performance i imamo konzistetnost podataka sto ce bit jako vazna kada budemo selili na microservixe arch
+
+
+ 
+
+
 
 ### Reference Documentation
 

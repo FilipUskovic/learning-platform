@@ -6,7 +6,6 @@ import com.micro.learningplatform.models.dto.DifficultyLevel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -159,47 +158,4 @@ public abstract class BaseModel {
     public int hashCode() {
         return Objects.hashCode(authorId);
     }
-
-
-    /*
-        klasa nije samo tehnički bolja nego i proširivija. Fokus na validaciju,
-         event sourcing, auditing i optimizaciju performansi čini je pogodnom za enterprise aplikacije.
-
-     */
-
-    /*
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @Version
-    @Column(name = "version", nullable = false)
-    private Long version;
-
-    // dodajem nove fieldove
-    @Column(name = "author_id")
-    private UUID authorId;
-
-    @Column(name = "category", length = 100)
-    private String category;
-
-    @Column(name = "difficulty_level", length = 50)
-    private String difficultyLevel;
-
-    @Column(name = "estimated_duration")
-    private Duration estimatedDuration;
-
-    @Column(name = "max_students")
-    private Integer maxStudents = 100;
-
-    protected BaseModel() {
-    }
-
-     */
-
-
 }
