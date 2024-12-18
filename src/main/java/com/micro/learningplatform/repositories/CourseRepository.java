@@ -42,28 +42,29 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     })
     Page<Course> findByStatus(@Param("status") CourseStatus status, Pageable pageable);
 
-    @Query("""
-        SELECT c FROM Course c
-        WHERE LOWER(c.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-        OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-        """)
-    Page<Course> searchCourses(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+    @Query("SELECT c FROM Course c WHERE " +
+            "LOWER(c.title) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            "LOWER(c.description) LIKE LOWER(CONCAT('%', :term, '%'))")
+    Page<Course> searchCoursesWithOther(@Param("term") String term, Pageable pageable);
 
     @EntityGraph(attributePaths = {"modules"})
     Optional<Course> findWithModulesById(UUID id);
 
 
-    @Query("""
-        SELECT c FROM Course c
-        WHERE (:status IS NULL OR c.courseStatus = :status)
-        AND (:searchTerm IS NULL
-             OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-             OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))
-        """)
-    Page<Course> advanceSearchCourses(@Param("searchTerm") String searchTerm,
-                                      @Param("status") CourseStatus status,
-                                      Pageable pageable);
-
+    @Query("SELECT c FROM Course c WHERE " +
+            "(:term IS NULL OR (LOWER(c.title) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            "LOWER(c.description) LIKE LOWER(CONCAT('%', :term, '%')))) AND " +
+            "(:status IS NULL OR c.courseStatus = :status) AND " +
+            "(:category IS NULL OR c.category = :category)")
+    Page<Course> searchCoursesWithOther(
+            @Param("term") String term,
+            @Param("status") CourseStatus status,
+            @Param("category") String category,
+            @Param("minDuration") Integer minDuration,
+            @Param("maxDuration") Integer maxDuration,
+            Pageable pageable
+    );
 
     // dodajem indexke 
     @Query(value = """

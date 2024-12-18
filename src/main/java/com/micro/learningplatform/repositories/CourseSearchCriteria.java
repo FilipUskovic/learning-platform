@@ -15,4 +15,16 @@ public class CourseSearchCriteria {
     private Integer maxDuration;
     private String category;
     private String title;
+    private SearchType searchType;
+
+    public enum SearchType {
+        BASIC,
+        ADVANCED,
+        FULL_TEXT
+    }
+
 }
+
+
+
+

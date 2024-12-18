@@ -4,6 +4,7 @@ import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.dto.*;
 import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
+import com.micro.learningplatform.repositories.CourseSearchCriteria;
 import com.micro.learningplatform.services.CourseServiceImpl;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -60,12 +61,39 @@ public class CourseController {
         return ResponseEntity.ok(courseService.publishCourse(id));
     }
 
-    // radi sipravno
     @GetMapping("/search")
+    public ResponseEntity<Page<CourseSearchResultDTO>> searchCourses(
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) CourseStatus status,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Integer minDuration,
+            @RequestParam(required = false) Integer maxDuration,
+            @RequestParam(required = false) CourseSearchCriteria.SearchType searchType,
+            Pageable pageable
+    ) throws RepositoryException {
+        CourseSearchCriteria criteria = CourseSearchCriteria.builder()
+                .searchTerm(searchTerm)
+                .status(status)
+                .category(category)
+                .minDuration(minDuration)
+                .maxDuration(maxDuration)
+                .searchType(searchType)
+                .build();
+
+        return ResponseEntity.ok(courseService.search(criteria, pageable));
+    }
+
+    // radi sipravno
+
+
+    /*
+
+     @GetMapping("/search")
     public ResponseEntity<Page<CourseResponse>> searchCourses(
             @Valid CourseSearchRequest request) {
         return ResponseEntity.ok(courseService.search(request));
     }
+
 
     // radi osim konvertije draft-a status
     @GetMapping("/advanced-search")
@@ -84,6 +112,8 @@ public class CourseController {
         List<CourseSearchResult> results = courseService.fullTextSearch(searchTerm);
         return ResponseEntity.ok(results);
     }
+
+     */
 
     // radi
     @GetMapping("/by-status/{status}")

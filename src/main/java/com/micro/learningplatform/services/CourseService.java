@@ -5,6 +5,7 @@ import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.models.dto.module.ModuleDetailResponse;
+import com.micro.learningplatform.repositories.CourseSearchCriteria;
 import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,11 +22,14 @@ public interface CourseService {
 
     CourseResponse publishCourse(UUID courseId);
 
+    /* pojednostavniti ove search metode u 1 s vise opcija
     Page<CourseResponse> search(CourseSearchRequest searchRequest);
-
     Page<CourseResponse> advancedSearch(String searchTerm, CourseStatus status, Pageable pageable);
-
     List<CourseSearchResult> fullTextSearch(String searchTerm) throws RepositoryException;
+    Page<CourseResponse> searchByTerm(String searchTerm, Pageable pageable);
+     */
+
+    Page<CourseSearchResultDTO> search(CourseSearchCriteria searchCriteria, Pageable pageRequest) throws RepositoryException;
 
     Page<CourseResponse> findByStatus(CourseStatus status, Pageable pageable);
 
@@ -51,7 +55,6 @@ public interface CourseService {
     // S @QueryHints za caching
     List<CourseResponse> findByCategoryAndDifficultyLevel(String category, String level); // S indeks optimizacijom
 
-    Page<CourseResponse> searchByTerm(String searchTerm, Pageable pageable);
 
 
 }

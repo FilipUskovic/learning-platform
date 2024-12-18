@@ -4,14 +4,14 @@ import com.micro.learningplatform.models.Course;
 import com.micro.learningplatform.models.CourseModule;
 import com.micro.learningplatform.models.CourseStatistics;
 import com.micro.learningplatform.models.CourseStatisticsSnapshot;
-import com.micro.learningplatform.models.dto.courses.CourseResponse;
-import com.micro.learningplatform.models.dto.courses.CourseResponseWithModules;
-import com.micro.learningplatform.models.dto.courses.CourseStatisticsDTO;
+import com.micro.learningplatform.models.dto.DifficultyLevel;
+import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.ModuleBasicInfo;
 import com.micro.learningplatform.models.dto.module.ModuleDetailResponse;
 import com.micro.learningplatform.models.dto.module.ModuleReferenceInfo;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +36,8 @@ public class CourseMapper {
                 course.getUpdatedAt()
         );
     }
+
+
 
     public static CourseResponseWithModules toCourseWithModulesResponse(Course course) {
         List<ModuleBasicInfo> moduleInfos = course.getModules().stream()
