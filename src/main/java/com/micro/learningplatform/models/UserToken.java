@@ -10,10 +10,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user_tokens")
+@Table(name = "user_tokens",
+        indexes = {
+                @Index(name = "idx_user_token", columnList = "token"),
+                @Index(name = "idx_user_token_user_type", columnList = "user_id, tokenType")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
+
 public class UserToken {
 
     /**

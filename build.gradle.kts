@@ -52,7 +52,11 @@ dependencies {
     implementation ("org.zalando:problem-spring-web:0.27.0")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
-    implementation ("com.vladmihalcea:hibernate-types-60:2.21.1")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation ("io.jsonwebtoken:jjwt-api:0.12.6")
+    implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
+    implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
+
 
 
     // implementation("org.apache.kafka:kafka-streams")

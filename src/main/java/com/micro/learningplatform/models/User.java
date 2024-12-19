@@ -2,7 +2,7 @@ package com.micro.learningplatform.models;
 
 import com.micro.learningplatform.security.AuthProvider;
 import com.micro.learningplatform.security.UserRole;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import com.micro.learningplatform.shared.utils.JsonbConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -16,7 +16,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users",
+        indexes = {
+                @Index(name = "idx_user_email", columnList = "email"),
+                @Index(name = "idx_user_provider_id", columnList = "provider, provider_id")
+        }
+)
+//@TypeDef(name = "json", typeClass = JsonType.class)
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -67,13 +74,13 @@ public class User extends BaseModel implements UserDetails, OAuth2User {
     private Set<UserToken> tokens = new HashSet<>();
 
     // OAuth2 specifična polja
-    @Type(JsonType.class)
+   // @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
+    @Convert(converter = JsonbConverter.class)
     private Map<String, Object> attributes = new HashMap<>();
 
 
     // Factory metode za kreiranje korisnika
-
     public static User createLocalUser(String email, String password, String firstName, String lastName ){
         User user = new User();
         user.setEmail(email);
@@ -99,10 +106,6 @@ public class User extends BaseModel implements UserDetails, OAuth2User {
     }
 
 
-
-
-
-
     @Override
     public String getName() {
         return email;
@@ -112,6 +115,7 @@ public class User extends BaseModel implements UserDetails, OAuth2User {
     public Map<String, Object> getAttributes() {
         return attributes;
     }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
