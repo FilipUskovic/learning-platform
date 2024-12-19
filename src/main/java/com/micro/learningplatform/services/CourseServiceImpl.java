@@ -5,10 +5,7 @@ import com.micro.learningplatform.models.dto.DifficultyLevel;
 import com.micro.learningplatform.models.dto.courses.*;
 import com.micro.learningplatform.models.dto.module.CreateModuleRequest;
 import com.micro.learningplatform.models.dto.module.ModuleDetailResponse;
-import com.micro.learningplatform.repositories.CourseRepository;
-import com.micro.learningplatform.repositories.CourseSearchCriteria;
-import com.micro.learningplatform.repositories.CustomCourseRepoImpl;
-import com.micro.learningplatform.repositories.ModuleRepositroy;
+import com.micro.learningplatform.repositories.*;
 import com.micro.learningplatform.shared.CourseMapper;
 import com.micro.learningplatform.shared.exceptions.*;
 import com.micro.learningplatform.shared.validation.CourseValidator;
@@ -18,7 +15,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -43,10 +39,10 @@ public class CourseServiceImpl implements CourseService {
 
     private static final Logger log = LogManager.getLogger(CourseServiceImpl.class);
     private final CourseRepository courseRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final CustomCourseRepoImpl customCourseRepo;
     private final ModuleRepositroy moduleRepository;
     private final CourseValidator courseValidator;
+    private final CourseStatisticsHistoryRepository historyRepository;
 
     // TODO dodati update i delete metode, te provjeriti jos jednom svaku metodu i validacije
 
@@ -109,8 +105,8 @@ public class CourseServiceImpl implements CourseService {
                 throw new NoResultException("No results found for the given search criteria.");
             }
 
-            List<CourseSearchResultDTO> dtos = results.stream()
-                    .map(result -> new CourseSearchResultDTO(
+            List<CourseSearchResult> dtos = results.stream()
+                    .map(result -> new CourseSearchResult(
                             result.courseId(),
                             result.title(),
                             result.description(),
@@ -369,12 +365,33 @@ public class CourseServiceImpl implements CourseService {
 
     }
 
+
     @Override
     public List<CourseStatisticHistory> getCourseHistory(UUID courseId, LocalDateTime startDate, LocalDateTime endDate) {
         log.debug("Fetching course history for course: {} between {} and {}",
                 courseId, startDate, endDate);
         Course course = findCourseById(courseId);
         return course.getStatisticHistory(startDate, endDate);
+    }
+
+    // todo dodati controller za ovo
+    public List<CourseStatisticHistory> getStatisticsHistory(
+            UUID courseId,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+        log.debug("Fetching statistics history for course ID: {}, startDate: {}, endDate: {}", courseId, startDate, endDate);
+
+        List<CourseStatisticHistory> results = historyRepository.findByDateRange(courseId, startDate, endDate);
+
+        if (results.isEmpty()) {
+            log.warn("No statistics found for course ID: {} within date range {} - {}", courseId, startDate, endDate);
+        } else {
+            log.debug("Statistics fetched: {}", results);
+        }
+
+        return results;
+        //  return statisticRepo.findByDateRange(courseId, startDate, endDate);
+
     }
 
     @Override

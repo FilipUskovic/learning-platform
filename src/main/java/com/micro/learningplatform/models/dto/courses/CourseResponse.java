@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.micro.learningplatform.models.CourseStatus;
 import com.micro.learningplatform.models.EntityCategory;
 import com.micro.learningplatform.models.dto.DifficultyLevel;
-import com.micro.learningplatform.models.dto.coursestatistic.CourseStatisticsSnapshotDTO;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
 public record CourseResponse(

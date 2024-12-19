@@ -11,7 +11,6 @@ import java.util.UUID;
 
 public interface CourseStatisticsHistoryRepository extends JpaRepository<CourseStatisticHistory, UUID> {
 
-    List<CourseStatisticHistory> findByCourseIdOrderBySnapshotTimestampDesc(UUID courseId);
 
 
     @Query("Select csh from CourseStatisticHistory csh where csh.course.Id =:courseId " +

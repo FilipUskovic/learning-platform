@@ -39,6 +39,8 @@ public interface CourseService {
 
     CourseStatisticsDTO getStatistics(UUID courseId);
 
+    List<CourseStatisticHistory> getStatisticsHistory(UUID courseId, LocalDateTime startDate, LocalDateTime endDate);
+
     CourseResponseWithModules getCourseWithModulesAndStatistics(UUID courseId);
 
     void addModuleToCourse(UUID courseId, CreateModuleRequest request);

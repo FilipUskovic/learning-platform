@@ -6,7 +6,7 @@ import com.micro.learningplatform.shared.exceptions.RepositoryException;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -23,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -129,46 +129,41 @@ public class CustomCourseRepoImpl implements CustomCourseRepo {
         });
     }
 
-    /**
-     * Full-text pretraživanje koristeći PostgreSQL tsvector
-     */
-    @Override
+
+     // * Full-text pretraživanje koristeći PostgreSQL tsvector
+    // malo popravio metodu jer korisitm typedquery - koje greske u tipovima i kolonama vraca hvata tijekom kompalacije, te sigurniiji
+    // bolje performance jer ne moramo pretvari iz objekta i mapirati, tj hibernate zna unaprijed strukutru
+    // korsiti tuple api da imam tipiziranotsi i dinamicnost
     public List<CourseSearchResult> fullTextSearch(String searchTerm) throws RepositoryException {
         return executeWithMetrics("fullTextSearch", () -> {
+            // SQL ostaje isti, ali dodajemo aliase koji se podudaraju s metodama u projekciji
             String sql = """
-                SELECT c.id as id, c.title as title, c.difficulty_level as difficultyLevel, c.description as description,
-                    ts_rank(to_tsvector('english', c.title || ' ' || c.description),
-                    plainto_tsquery('english', :searchTerm)) as rank
-                FROM courses c
-                WHERE to_tsvector('english', c.title || ' ' || c.description) @@
-                    plainto_tsquery('english', :searchTerm)
-                ORDER BY rank DESC
-                """;
+             SELECT c.id as id, c.title as title, c.difficulty_level as difficultyLevel, c.description as description,
+              ts_rank(to_tsvector('english', c.title || ' ' || c.description),
+              plainto_tsquery('english', :searchTerm)) as rank
+              FROM courses c
+               WHERE to_tsvector('english', c.title || ' ' || c.description) @@
+               plainto_tsquery('english', :searchTerm)
+               ORDER BY rank DESC
+            """;
 
-            // Koristimo JPA ResultTransformer umjesto Hibernate specifičnog
-            Query query = entityManager.createNativeQuery(sql)
+            // Koristimo TypedQuery s našom projekcijom
+            TypedQuery<Tuple> query = (TypedQuery<Tuple>) entityManager.createNativeQuery(sql, Tuple.class)
                     .setParameter("searchTerm", searchTerm);
 
-            // Transformiramo rezultate manualno
-            List<Object[]> results = query.getResultList();
-            return results.stream()
-                    .map(this::mapToCourseSearchResult)
-                    .collect(Collectors.toList());
+            // Mapiranje Tuple rezultata na CourseSearchResult
+            return query.getResultList().stream()
+                    .map(tuple -> new CourseSearchResult(
+                            tuple.get("id", UUID.class).toString(),
+                            tuple.get("title", String.class),
+                            tuple.get("description", String.class),
+                            tuple.get("difficultyLevel", String.class),
+                            tuple.get("rank", Float.class)
+                    ))
+                    .toList();
         });
     }
 
-    /**
-     * Mapira rezultate native querija u CourseSearchResult
-     */
-    private CourseSearchResult mapToCourseSearchResult(Object[] row) {
-        return new CourseSearchResult(
-                row[0].toString(),   // ID
-                row[1].toString(),   // Title
-                row[2].toString(),   // Description
-                row[3].toString(),   // Difficulty Level
-                ((Number) row[4]).doubleValue() // rank
-        );
-    }
 
     /**
      * Generička metoda za izvršavanje operacija s metrikama i error handlingom
@@ -191,6 +186,7 @@ public class CustomCourseRepoImpl implements CustomCourseRepo {
             throw new RepositoryException("Failed to execute " + operation, e);
         }
     }
+
 
 }
 
