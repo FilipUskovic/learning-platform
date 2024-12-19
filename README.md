@@ -87,7 +87,7 @@ kesiranje paginiranje, izolacija i propagacija servisa [x]
 
 
 dan 12 []
-zapoceti s securitijem
+zapoceti s securitijem [x]
 implemetirati jwt [] 
 implementir o2auth []
 
@@ -296,6 +296,16 @@ dan 11 kraj
  -> to nam sve za sada omogucje da pratimo DDD prinicpe, optimiziramo performance i imamo konzistetnost podataka sto ce bit jako vazna kada budemo selili na microservixe arch
 
 
+ security - psoto planiram preci na microservise korsiti cu jwt i o2auth
+ -> jwt ce omogucivati da svaki servis moze prvjeriti token lokanlno, bez kontaktiranja centralnog authoraziciskom servera
+ -> O2auth ce upravljati zivotnim ciklusom tokena (generiranje, osvjezivanje) i centralizaranom kontrolim autentifikacije
+
+ - Imati cu tako:
+    * Centalizirano Upravljanje 0auth2 centraliziacju authoziaciskih odlika
+    * stateless provjera jwt omogcuje statless provjer i smanjuje opterecenje prema serveru
+    * skalabilsnot . bit ce dobra za mucroservis
+    * sigursnot - nekako je selfexplanotry
+ * 
  
 
 

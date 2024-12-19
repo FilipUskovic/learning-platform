@@ -50,13 +50,17 @@ dependencies {
    // implementation("io.micrometer:micrometer-registry-kafka:1.11.3")
 
     implementation ("org.zalando:problem-spring-web:0.27.0")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
+    implementation ("com.vladmihalcea:hibernate-types-60:2.21.1")
+
 
     // implementation("org.apache.kafka:kafka-streams")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
     // swager 3 tj opeapi
     implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
-
+    testImplementation("org.springframework.security:spring-security-test")
 
 
     /* kasnije cu korsiti
