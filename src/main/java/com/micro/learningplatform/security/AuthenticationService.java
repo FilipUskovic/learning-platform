@@ -11,6 +11,8 @@ import com.micro.learningplatform.security.jwt.JwtService;
 import com.micro.learningplatform.shared.exceptions.InvalidTokenException;
 import com.micro.learningplatform.shared.exceptions.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,6 +27,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
+    private static final Logger log = LogManager.getLogger(AuthenticationService.class);
     private final UseRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -35,6 +38,53 @@ public class AuthenticationService {
      * Registrira novog korisnika u sustav.
      * Kreira korisnika, generira tokene i sprema ih u bazu.
      */
+
+    @Transactional
+    public AuthenticationResponse register(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
+        }
+
+        var user = User.createLocalUser(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.firstName(),
+                request.lastName()
+        );
+
+        // Automatski omogućiti i verificirati korisnika (po potrebi)
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+
+        var savedUser = userRepository.save(user);
+
+        return generateAuthenticationResponse(savedUser);
+    }
+
+    // todo rijesit problem s tokenom validacjom
+    @Transactional
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        log.info("Pokušaj autentifikacije za korisnika: {}", request.email());
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                )
+        );
+
+        var user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        log.info("Autentifikacija uspješna za korisnika: {}", request.email());
+        return generateAuthenticationResponse(user);
+    }
+
+
+
+
+
+    /*
     @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
 
@@ -48,9 +98,10 @@ public class AuthenticationService {
                 request.firstName(),
                 request.lastName()
         );
+        user.setEnabled(true);
+        user.setEmailVerified(true);
 
         var savedUser = userRepository.save(user);
-
         var accessToken = jwtService.generateToken(savedUser);
         var refreshToken = jwtService.generateRefreshToken(savedUser);
 
@@ -65,10 +116,13 @@ public class AuthenticationService {
 
     }
 
+
+
     /**
      * Autentificira postojećeg korisnika.
      * Provjerava kredencijale, generira nove tokene i sprema ih.
-     */
+
+    
     @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         // Autentifikacija korisnika kroz Spring Security
@@ -79,8 +133,10 @@ public class AuthenticationService {
                 )
         );
 
+
         var user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
 
         var accessToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
@@ -93,6 +149,7 @@ public class AuthenticationService {
                 .build();
     }
 
+*/
     /**
      * Osvježava access token koristeći refresh token.
      * Provjerava valjanost refresh tokena i generira novi access token.
@@ -114,13 +171,20 @@ public class AuthenticationService {
             throw new InvalidTokenException("Invalid refresh token");
         }
 
-        var newAccessToken = jwtService.generateToken(user);
+       return generateAuthenticationResponse(user);
+    }
 
-        saveNewAccessToken(user, newAccessToken);
+
+    private AuthenticationResponse generateAuthenticationResponse(User user) {
+        var accessToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
+        saveUserTokens(user, accessToken, refreshToken);
 
         return AuthenticationResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken) // Vraćamo isti refresh token
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
                 .build();
     }
 

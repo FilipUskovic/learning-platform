@@ -246,6 +246,7 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.validation: TRACE
     org.springframework.web.servlet.mvc.method.annotation: TRACE
+    org.springframework.security: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

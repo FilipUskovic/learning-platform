@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,6 +28,7 @@ import java.util.List;
 @ControllerAdvice
 @RequiredArgsConstructor
 @Slf4j
+@Order(Ordered.LOWEST_PRECEDENCE) // ima manji prioritet nego security ecxeptions
 public class GlobalException extends ResponseEntityExceptionHandler {
 
     private final MeterRegistry meterRegistry;
@@ -76,9 +79,14 @@ public class GlobalException extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, WebRequest request) throws Exception {
         log.error("General exception handler caught: {}", ex.getMessage());
         log.error("Exception type: {}", ex.getClass().getName());
+
+       // Proslijedi specifične iznimke dalje
+        if (ex instanceof UserAlreadyExistsException || ex instanceof InvalidTokenException) {
+            throw ex; // Ovo omogućuje specifičnim handlerima da obrade te iznimke
+        }
 
         logError(ex);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", request);
@@ -159,9 +167,10 @@ public class GlobalException extends ResponseEntityExceptionHandler {
         if (ex instanceof CourseNotFoundException || ex instanceof NoResultException || ex instanceof ResourceNotFoundException) {
             return HttpStatus.NOT_FOUND;
         }
-        if (ex instanceof CourseAlreadyExistsException) {
+        if (ex instanceof CourseAlreadyExistsException || ex instanceof UserAlreadyExistsException) {
             return HttpStatus.CONFLICT;
         }
+
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 

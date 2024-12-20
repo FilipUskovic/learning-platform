@@ -8,6 +8,7 @@ import com.micro.learningplatform.security.dto.RegisterRequest;
 import com.micro.learningplatform.security.dto.TokenRefreshRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final AuthenticationService authService;
@@ -31,6 +33,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+        log.info("Pokušaj autentifikacije za korisnika: {}", request.email());
         return ResponseEntity.ok(authService.authenticate(request));
     }
 

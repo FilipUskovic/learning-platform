@@ -7,6 +7,8 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +27,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtService {
 
+    private static final Logger log = LogManager.getLogger(JwtService.class);
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
@@ -109,6 +112,9 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
+        log.info("isValid token {} ", username);
+        log.info("isValid token extractUserName {} ", extractUsername(token));
+        log.debug("Provjera korisnika iz baze: {}", userDetails.getUsername());
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
@@ -128,6 +134,7 @@ public class JwtService {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
+
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
