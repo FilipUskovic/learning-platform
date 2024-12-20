@@ -8,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -61,14 +60,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         var newAccessToken = UserToken.createAccessToken(
                 user,
                 accessToken,
-                LocalDateTime.now().plusHours(24) // Fiksno vrijeme ili možemo dodati u konfiguraciju
+                jwtService.getAccessTokenExpiration(LocalDateTime.now())
+
         );
 
         // Za refresh token - pretpostavljamo 7 dana trajanje
         var newRefreshToken = UserToken.createRefreshToken(
                 user,
                 refreshToken,
-                LocalDateTime.now().plusDays(7)
+                jwtService.getRefreshTokenExpiration(LocalDateTime.now())
+
+
         );
 
         user.addToken(newAccessToken);

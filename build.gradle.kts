@@ -57,6 +57,8 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
+    // za ucitavanje env fileova za gradle
+    implementation ("me.paulschwarz:spring-dotenv:3.0.0")
 
 
     // implementation("org.apache.kafka:kafka-streams")

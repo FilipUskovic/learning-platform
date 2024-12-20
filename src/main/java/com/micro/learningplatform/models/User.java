@@ -6,6 +6,7 @@ import com.micro.learningplatform.shared.utils.JsonbConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -77,6 +78,7 @@ public class User extends BaseModel implements UserDetails, OAuth2User {
    // @Type(JsonType.class)
     @Column(columnDefinition = "jsonb")
     @Convert(converter = JsonbConverter.class)
+    @ColumnTransformer(write = "?::jsonb") // Explicitly cast to jsonb
     private Map<String, Object> attributes = new HashMap<>();
 
 

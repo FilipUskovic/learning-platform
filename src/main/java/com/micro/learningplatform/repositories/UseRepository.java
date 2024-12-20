@@ -25,7 +25,8 @@ public interface UseRepository extends JpaRepository<User, UUID> {
     @Query(nativeQuery = true, value = "SELECT * FROM users WHERE enabled = true AND email_verified = true")
     List<User> findAllActiveAndVerified();
 
-    @Query(value = "SELECT * FROM users WHERE attributes @> :jsonQuery", nativeQuery = true)
+    @Query(value = "SELECT * FROM users WHERE attributes @> :jsonQuery",
+            nativeQuery = true)
     List<User> findByAttributes(@Param("jsonQuery") String jsonQuery);
 
 
