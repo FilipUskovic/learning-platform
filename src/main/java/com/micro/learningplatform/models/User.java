@@ -94,6 +94,20 @@ public class User extends BaseModel implements UserDetails, OAuth2User {
         return user;
     }
 
+    // ako zelim da admin odmah kreira i role
+    public static User createUserWithRoles(String email, String password, String firstName, String lastName, AuthProvider provider, UserRole... roles) {
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(password);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setProvider(provider);
+        user.setEmailVerified(true);
+        user.setEnabled(true);
+        user.getRoles().addAll(Arrays.asList(roles));
+        return user;
+    }
+
     public static User createOAuth2User(String email, String firstName, String lastName,
                                         AuthProvider provider, String providerId) {
         User user = new User();

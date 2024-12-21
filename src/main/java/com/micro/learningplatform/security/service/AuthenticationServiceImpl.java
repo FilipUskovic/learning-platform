@@ -1,12 +1,12 @@
-package com.micro.learningplatform.security;
+package com.micro.learningplatform.security.service;
 
 import com.micro.learningplatform.models.User;
 import com.micro.learningplatform.models.UserToken;
 import com.micro.learningplatform.repositories.UseRepository;
 import com.micro.learningplatform.repositories.UserTokenRepository;
-import com.micro.learningplatform.security.dto.AuthenticationRequest;
-import com.micro.learningplatform.security.dto.AuthenticationResponse;
-import com.micro.learningplatform.security.dto.RegisterRequest;
+import com.micro.learningplatform.security.AuthProvider;
+import com.micro.learningplatform.security.UserRole;
+import com.micro.learningplatform.security.dto.*;
 import com.micro.learningplatform.security.jwt.JwtService;
 import com.micro.learningplatform.shared.exceptions.InvalidTokenException;
 import com.micro.learningplatform.shared.exceptions.UserAlreadyExistsException;
@@ -25,20 +25,23 @@ import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private static final Logger log = LogManager.getLogger(AuthenticationService.class);
+    private static final Logger log = LogManager.getLogger(AuthenticationServiceImpl.class);
     private final UseRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserTokenRepository tokenRepository;
 
+    //TOdo dodati bolje respone odgovore za metdoe, malo bolje validaciju pogotov za admiin metode
+
     /**
      * Registrira novog korisnika u sustav.
      * Kreira korisnika, generira tokene i sprema ih u bazu.
      */
 
+    @Override
     @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
@@ -61,6 +64,7 @@ public class AuthenticationService {
     }
 
     // todo rijesit problem s tokenom validacjom
+    @Override
     @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         log.info("Pokušaj autentifikacije za korisnika: {}", request.email());
@@ -82,14 +86,12 @@ public class AuthenticationService {
 
 
 
-
-
-
-
     /**
      * Osvježava access token koristeći refresh token.
      * Provjerava valjanost refresh tokena i generira novi access token.
      */
+    //todo testirari ovo
+    @Override
     @Transactional
     public AuthenticationResponse refreshToken(String refreshToken) {
         final String userEmail = jwtService.extractUsername(refreshToken);
@@ -109,6 +111,114 @@ public class AuthenticationService {
 
        return generateAuthenticationResponse(user);
     }
+
+    @Override
+    @Transactional
+    public void addRoleToUser(String email, UserRole role) {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if(!user.getRoles().contains(role)) {
+            user.getRoles().add(role);
+            userRepository.save(user);
+        }
+
+    }
+
+    @Override
+    @Transactional
+    public void removeRoleFromUser(String email, UserRole role) {
+
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if(user.getRoles().contains(role)) {
+            user.getRoles().remove(role);
+            userRepository.save(user);
+        }
+
+    }
+
+    @Override
+    @Transactional
+    public AuthenticationResponseWithRoles registerUserWithRoles(RegisterWithRolesRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
+        }
+
+        var user = User.createUserWithRoles(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.firstName(),
+                request.lastName(),
+                AuthProvider.LOCAL,
+                request.roles().toArray(new UserRole[0])
+        );
+
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        var savedUser = userRepository.save(user);
+        return generateAuthenticationResponseWithRoles(savedUser);
+    }
+
+    @Transactional
+    @Override
+    public AuthenticationResponse registerInstructor(RegisterRequest request) {
+
+        if (userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("Instructor with email " + request.email() + " already exists");
+        }
+        var user = User.createUserWithRoles(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.firstName(),
+                request.lastName(),
+                AuthProvider.LOCAL,
+                UserRole.INSTRUCTOR
+        );
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        var savedUser = userRepository.save(user);
+        return generateAuthenticationResponse(savedUser);
+    }
+
+    // ovo je samo za test ne bi imali javni pristup svim za kreiranje admina
+    @Transactional
+    @Override
+    public AuthenticationResponse registerAdmin(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("Admin with email " + request.email() + " already exists");
+        }
+
+        var user = User.createUserWithRoles(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.firstName(),
+                request.lastName(),
+                AuthProvider.LOCAL,
+                UserRole.ADMIN
+        );
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        var savedUser = userRepository.save(user);
+        return generateAuthenticationResponse(savedUser);
+    }
+
+
+    private AuthenticationResponseWithRoles generateAuthenticationResponseWithRoles(User user) {
+        var accessToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
+        saveUserTokens(user, accessToken, refreshToken);
+
+        return AuthenticationResponseWithRoles.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .roles(user.getRoles().toString())
+                .build();
+    }
+
 
 
     private AuthenticationResponse generateAuthenticationResponse(User user) {
@@ -148,19 +258,5 @@ public class AuthenticationService {
         tokenRepository.saveAll(Arrays.asList(newAccessToken, newRefreshToken));
     }
 
-
-    private void saveNewAccessToken(User user, String accessToken) {
-
-        LocalDateTime now = LocalDateTime.now();
-
-        var newAccessToken = UserToken.createAccessToken(
-                user,
-                accessToken,
-                jwtService.getAccessTokenExpiration(now)
-        );
-
-        user.addToken(newAccessToken);
-        tokenRepository.save(newAccessToken);
-    }
 
 }

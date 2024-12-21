@@ -1,7 +1,7 @@
 package com.micro.learningplatform.security.controller;
 
 import com.micro.learningplatform.repositories.UserTokenRepository;
-import com.micro.learningplatform.security.AuthenticationService;
+import com.micro.learningplatform.security.service.AuthenticationServiceImpl;
 import com.micro.learningplatform.security.dto.AuthenticationRequest;
 import com.micro.learningplatform.security.dto.AuthenticationResponse;
 import com.micro.learningplatform.security.dto.RegisterRequest;
@@ -22,13 +22,18 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AuthController {
 
-    private final AuthenticationService authService;
+    private final AuthenticationServiceImpl authService;
     private final UserTokenRepository tokenRepository;
 
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest registerRequest) {
         return ResponseEntity.ok(authService.register(registerRequest));
+    }
+
+    @PostMapping("/register-instructor")
+    public ResponseEntity<AuthenticationResponse> registerInstructor(@RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(authService.registerInstructor(registerRequest));
     }
 
     @PostMapping("/login")
@@ -59,5 +64,11 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+
+    // todo ovo bi sigurno malknuli iz javnih pristupa samo za test
+    @PostMapping("/register-admin")
+    public ResponseEntity<AuthenticationResponse> registerAdmin(@RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(authService.registerAdmin(registerRequest));
+    }
 
 }

@@ -86,14 +86,24 @@ odvojiti validaciju domensku poslovnu [x]
 kesiranje paginiranje, izolacija i propagacija servisa [x]
 
 
-dan 12 []
+dan 12 [x]
 zapoceti s securitijem [x]
-implemetirati jwt [] 
-implementir o2auth []
+implemetirati jwt [x] 
+implementir o2auth [x]
 
 
-dan 13 []
+dan 13 i 14 []
+dofilzer [x]
+securtiy config [x]
+users s rolama [x]
+jwt token  servis [x]
+centralizirani servis [x]
+controlleri []
 
+TODO: DODATi u base entety authorId da mogu pratit evente, dodati onda u course servis te dodati preathorzire u controllere 
+
+
+dan 15 []
 poceti dijeliti u microservise
 
 
