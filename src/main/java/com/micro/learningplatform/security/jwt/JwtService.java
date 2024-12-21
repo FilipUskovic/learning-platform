@@ -144,8 +144,10 @@ public class JwtService {
                 .getPayload();
     }
 
+    // TODO razmisliti ocu li dodati attributes i za jwt ili samo za o2auth
     public Map<String, Object> generateCustomClaims(User user) {
         Map<String, Object> claims = new HashMap<>();
+       // claims.put("attributes", user.getAttributes());
         claims.put("userId", user.getId().toString());
         claims.put("roles", user.getAuthorities()
                 .stream()

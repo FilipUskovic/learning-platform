@@ -51,7 +51,6 @@ public class AuthenticationService {
                 request.firstName(),
                 request.lastName()
         );
-
         // Automatski omogućiti i verificirati korisnika (po potrebi)
         user.setEnabled(true);
         user.setEmailVerified(true);
@@ -77,6 +76,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         log.info("Autentifikacija uspješna za korisnika: {}", request.email());
+
         return generateAuthenticationResponse(user);
     }
 
@@ -84,72 +84,8 @@ public class AuthenticationService {
 
 
 
-    /*
-    @Transactional
-    public AuthenticationResponse register(RegisterRequest request) {
-
-        if (userRepository.existsByEmail(request.email())) {
-            throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
-        }
-
-        var user = User.createLocalUser(
-                request.email(),
-                passwordEncoder.encode(request.password()),
-                request.firstName(),
-                request.lastName()
-        );
-        user.setEnabled(true);
-        user.setEmailVerified(true);
-
-        var savedUser = userRepository.save(user);
-        var accessToken = jwtService.generateToken(savedUser);
-        var refreshToken = jwtService.generateRefreshToken(savedUser);
 
 
-        saveUserTokens(savedUser, accessToken, refreshToken);
-
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .build();
-
-    }
-
-
-
-    /**
-     * Autentificira postojećeg korisnika.
-     * Provjerava kredencijale, generira nove tokene i sprema ih.
-
-    
-    @Transactional
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        // Autentifikacija korisnika kroz Spring Security
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                )
-        );
-
-
-        var user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-
-        var accessToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-        saveUserTokens(user, accessToken, refreshToken);
-
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .build();
-    }
-
-*/
     /**
      * Osvježava access token koristeći refresh token.
      * Provjerava valjanost refresh tokena i generira novi access token.
