@@ -5,9 +5,9 @@ import com.micro.learningplatform.security.UserRole;
 import com.micro.learningplatform.shared.utils.JsonbConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
                 @Index(name = "idx_user_provider_id", columnList = "provider, provider_id")
         }
 )
-//@TypeDef(name = "json", typeClass = JsonType.class)
 
 @Getter
 @Setter
@@ -31,14 +30,30 @@ import java.util.stream.Collectors;
 @ToString
 public class User extends BaseModel implements UserDetails, OAuth2User {
 
+    /**
+     * imam indekse za cesto korištenje pretrage
+     * seamless integracja userdetails i o2auth s securitijem
+     * korsitim fatory metode za kreiranje novih koriniksa
+     * nasljedujem basemodel za za auditing funkcionalonost
+     */
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
     @Column(unique = true, nullable = false)
-    @Email(message = "Email should be valid")
+    @Email(regexp = "[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,63}",
+            flags = Pattern.Flag.CASE_INSENSITIVE,
+            message = "Email should be valid")
     private String email;
 
+
+    /*
+    @Pattern(
+            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
+            message = "Password must have at least 8 char 1 capital latter and special symbol"
+    )
+     */
     @Column(nullable = true)
     private String password; // Nullable jer OAuth2 korisnici nemaju lozinku
 
@@ -208,4 +223,6 @@ public class User extends BaseModel implements UserDetails, OAuth2User {
     public boolean hasRole(UserRole role) {
         return roles.contains(role);
     }
+
+
 }

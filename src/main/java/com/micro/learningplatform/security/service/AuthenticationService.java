@@ -21,5 +21,7 @@ public interface AuthenticationService {
 
     AuthenticationResponse registerAdmin(RegisterRequest request);
 
+    String registerWithoutdToken(RegisterRequest request);
+
 
 }

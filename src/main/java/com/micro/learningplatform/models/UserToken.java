@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cache;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class UserToken {
 
     /**
@@ -33,6 +34,7 @@ public class UserToken {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private User user;
 
     @Column(unique = true)
@@ -64,6 +66,7 @@ public class UserToken {
         return userToken;
     }
 
+   // @Cacheable(value = "tokenValidity", key = "#token")
     public boolean isValid() {
         return !revoked && LocalDateTime.now().isBefore(expiryDate);
     }

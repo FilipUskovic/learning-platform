@@ -28,8 +28,4 @@ public interface UseRepository extends JpaRepository<User, UUID> {
     @Query(value = "SELECT * FROM users WHERE attributes @> :jsonQuery",
             nativeQuery = true)
     List<User> findByAttributes(@Param("jsonQuery") String jsonQuery);
-
-    
-
-
 }

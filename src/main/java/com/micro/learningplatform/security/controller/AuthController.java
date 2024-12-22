@@ -7,6 +7,7 @@ import com.micro.learningplatform.security.dto.AuthenticationResponse;
 import com.micro.learningplatform.security.dto.RegisterRequest;
 import com.micro.learningplatform.security.dto.TokenRefreshRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,24 +28,30 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<AuthenticationResponse> register(@RequestBody @Valid RegisterRequest registerRequest) {
         return ResponseEntity.ok(authService.register(registerRequest));
     }
 
+    @PostMapping("/register-without-token")
+    public ResponseEntity<String> registerWithoutToken(@RequestBody @Valid RegisterRequest request) {
+        String message = authService.registerWithoutdToken(request);
+        return ResponseEntity.ok(message);
+    }
+
     @PostMapping("/register-instructor")
-    public ResponseEntity<AuthenticationResponse> registerInstructor(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<AuthenticationResponse> registerInstructor(@RequestBody @Valid RegisterRequest registerRequest) {
         return ResponseEntity.ok(authService.registerInstructor(registerRequest));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request) {
         log.info("Pokušaj autentifikacije za korisnika: {}", request.email());
         return ResponseEntity.ok(authService.authenticate(request));
     }
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationResponse> refreshToken(
-            @RequestBody TokenRefreshRequest request) {
+            @RequestBody @Valid TokenRefreshRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request.refreshToken()));
     }
 
@@ -67,7 +74,7 @@ public class AuthController {
 
     // todo ovo bi sigurno malknuli iz javnih pristupa samo za test
     @PostMapping("/register-admin")
-    public ResponseEntity<AuthenticationResponse> registerAdmin(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<AuthenticationResponse> registerAdmin(@RequestBody @Valid RegisterRequest registerRequest) {
         return ResponseEntity.ok(authService.registerAdmin(registerRequest));
     }
 

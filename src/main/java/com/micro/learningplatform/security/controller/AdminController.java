@@ -1,11 +1,10 @@
 package com.micro.learningplatform.security.controller;
 
 import com.micro.learningplatform.security.dto.AuthenticationResponseWithRoles;
-import com.micro.learningplatform.security.dto.RegisterRequest;
 import com.micro.learningplatform.security.dto.RegisterWithRolesRequest;
 import com.micro.learningplatform.security.service.AuthenticationServiceImpl;
 import com.micro.learningplatform.security.UserRole;
-import com.nimbusds.openid.connect.sdk.AuthenticationResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +29,7 @@ public class AdminController {
     }
 
     @PostMapping("/create-user")
-    public ResponseEntity<AuthenticationResponseWithRoles> createUserWithRoles(@RequestBody RegisterWithRolesRequest request) {
+    public ResponseEntity<AuthenticationResponseWithRoles> createUserWithRoles(@RequestBody @Valid RegisterWithRolesRequest request) {
         authService.registerUserWithRoles(request);
         return ResponseEntity.ok(authService.registerUserWithRoles(request));
     }

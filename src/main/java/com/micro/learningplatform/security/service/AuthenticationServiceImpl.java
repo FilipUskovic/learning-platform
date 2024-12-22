@@ -39,6 +39,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     /**
      * Registrira novog korisnika u sustav.
      * Kreira korisnika, generira tokene i sprema ih u bazu.
+     * Trenutne samo register metode odmah vracaju u accesstoken nije potrebni verificira iako je moguce
+     * trenutno je samo jwt sve bez o2auth-a
      */
 
     @Override
@@ -63,6 +65,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return generateAuthenticationResponse(savedUser);
     }
 
+
+
+    @Override
+    @Transactional
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        log.info("Pokušaj autentifikacije za korisnika: {}", request.email());
+
+        // Provjera postoji li korisnik prije autentifikacije to jeb bitno korak bio
+        var user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + request.email()));
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                )
+        );
+
+
+        log.info("Autentifikacija uspješna za korisnika: {}", request.email());
+
+        return generateAuthenticationResponse(user);
+    }
+
+    /*
+
     // todo rijesit problem s tokenom validacjom
     @Override
     @Transactional
@@ -85,6 +113,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
+     */
 
     /**
      * Osvježava access token koristeći refresh token.
@@ -203,6 +232,31 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var savedUser = userRepository.save(user);
         return generateAuthenticationResponse(savedUser);
     }
+
+    // TODO ova metoda nije gotova dodati emailService koji ce slati email verifikaciju za tokena putem jwt-a
+    @Override
+    @Transactional
+    public String registerWithoutdToken(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("User with email " + request.email() + " already exists");
+        }
+
+        var user = User.createLocalUser(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.firstName(),
+                request.lastName()
+        );
+
+        user.setEnabled(true);
+        user.setEmailVerified(false);  // Email verifikacija po potrebi
+
+        userRepository.save(user);
+
+        log.info("User registered with email: {}", request.email());
+        return "User registered successfully. Please login to continue.";
+    }
+
 
 
     private AuthenticationResponseWithRoles generateAuthenticationResponseWithRoles(User user) {

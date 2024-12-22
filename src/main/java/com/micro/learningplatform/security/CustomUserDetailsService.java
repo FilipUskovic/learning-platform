@@ -31,15 +31,4 @@ public class CustomUserDetailsService implements UserDetailsService {
         return user;
     }
 
-    /*
-    @Override
-    @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "Korisnik nije pronađen s email-om: " + email
-                ));
-    }
-
-     */
 }
