@@ -125,7 +125,6 @@ public class AuthController {
         if (clientRegistration == null) {
             throw new OAuth2AuthenticationException("Client registration not found in session.");
         }
-
         // Kreiraj i vrati OAuth2UserRequest
         return new OAuth2UserRequest(clientRegistration, (OAuth2AccessToken) oauth2User.getAttributes());
     }
@@ -143,7 +142,6 @@ public class AuthController {
                 "picture", Objects.requireNonNull(principal.getAttribute("picture"))
         ));
     }
-
 
     private OAuth2AuthorizationRequest getStoredAuthorizationRequest(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
