@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth2 Test Page</title>
+</head>
+<body>
+<h1>OAuth2 Test Page</h1>
+
+<h2>Login dugmad</h2>
+<div>
+    <a href="/oauth2/authorization/google" class="btn">Login with Google</a>
+</div>
+
+<h2>Trenutni korisnik (ako je prijavljen):</h2>
+<div id="user-info">
+    Niste prijavljeni
+</div>
+
+<script>
+    // Možemo dodati JavaScript koji će prikazati podatke o prijavljenom korisniku
+    fetch('/api/v1/auth/user')
+        .then(response => response.json())
+        .then(user => {
+            document.getElementById('user-info').textContent =
+                JSON.stringify(user, null, 2);
+        })
+        .catch(error => console.error('Error:', error));
+</script>
+</body>
+</html>

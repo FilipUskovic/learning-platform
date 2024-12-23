@@ -2,6 +2,8 @@ package com.micro.learningplatform.security.service;
 
 import com.micro.learningplatform.security.UserRole;
 import com.micro.learningplatform.security.dto.*;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 public interface AuthenticationService {
 
@@ -22,6 +24,9 @@ public interface AuthenticationService {
     AuthenticationResponse registerAdmin(RegisterRequest request);
 
     String registerWithoutdToken(RegisterRequest request);
+
+    AuthenticationResponse authenticateOAuth2User(OAuth2UserRequest userRequest, OAuth2User oauth2User);
+
 
 
 }
