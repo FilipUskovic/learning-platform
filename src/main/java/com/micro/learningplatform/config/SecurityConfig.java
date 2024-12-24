@@ -47,6 +47,9 @@ public class SecurityConfig {
     public static final RequestMatcher[] PUBLIC_ENDPOINTS = {
             new AntPathRequestMatcher("/api/v1/auth/**"),
             new AntPathRequestMatcher("/oauth2/**"),
+            new AntPathRequestMatcher("/oauth2/authorization/**"), // za 02auth
+            new AntPathRequestMatcher("/login/oauth2/code/**"), // i gogole
+         //   new AntPathRequestMatcher("/api/v1/auth/oauth2/callback/**"), // dodao i  ovo
             new AntPathRequestMatcher("/error"),
             new AntPathRequestMatcher("/login")
     };
@@ -75,13 +78,15 @@ public class SecurityConfig {
                         )
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler)
+                        /*
                         .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/oauth2/authorize")
+                                .baseUri("/oauth2/authorize"))
+                         */
 
-                        )
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                      //  .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(new JwtAuthenticationEntryPoint())  // Dodaj EntryPoint

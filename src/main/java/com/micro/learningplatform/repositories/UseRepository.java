@@ -1,6 +1,7 @@
 package com.micro.learningplatform.repositories;
 
 import com.micro.learningplatform.models.User;
+import com.micro.learningplatform.security.AuthProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +18,7 @@ public interface UseRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
    // OAuth2 autentifikaciju
-    Optional<User> findByProviderAndProviderId(String provider, String providerId);
+    Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId);
 
     boolean existsByEmail(String email);
 

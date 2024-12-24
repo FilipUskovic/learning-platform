@@ -319,7 +319,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private User findOrCreateOAuth2User(OAuth2User oauth2User, String provider, String providerId) {
-        return userRepository.findByProviderAndProviderId(provider, providerId)
+        return userRepository.findByProviderAndProviderId(AuthProvider.valueOf(provider), providerId)
                 .orElseGet(() -> {
                     // ako ne postoji, trazimo po email-u
                     String email = oauth2User.getAttribute("email");

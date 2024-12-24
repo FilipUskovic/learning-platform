@@ -30,7 +30,81 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private static final String GIVEN_NAME_ATTRIBUTE = "given_name";
     private static final String FAMILY_NAME_ATTRIBUTE = "family_name";
 
+    @Override
+    @Transactional
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        try {
+            OAuth2User oauth2User = super.loadUser(userRequest);
 
+            String providerStr = userRequest.getClientRegistration().getRegistrationId();
+            AuthProvider provider = AuthProvider.fromString(providerStr);
+
+            log.debug("OAuth2 provider: {}", provider);
+            log.debug("OAuth2 attributes: {}", oauth2User.getAttributes());
+
+            String email;
+            String providerId;
+            if (provider == AuthProvider.GITHUB) {
+                email = extractRequiredAttribute(oauth2User, "email");
+                providerId = String.valueOf(Objects.requireNonNull(oauth2User.getAttribute("id")));
+            } else {
+                email = extractRequiredAttribute(oauth2User, "email");
+                providerId = extractRequiredAttribute(oauth2User, "sub");
+            }
+
+            log.debug("Processing OAuth2 login for user with email: {}, provider: {}", email, provider);
+
+            return (OAuth2User) userRepository.findByProviderAndProviderId(AuthProvider.valueOf(String.valueOf(provider)), providerId)
+                    .map(existingUser -> updateExistingUser(existingUser, oauth2User))
+                    .orElseGet(() -> createNewOAuth2User(oauth2User, AuthProvider.valueOf(String.valueOf(provider)), providerId));
+
+        } catch (Exception e) {
+            log.error("OAuth2 authentication failed", e);
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("authentication_error"),
+                    "Failed to process OAuth2 login: " + e.getMessage(), e);
+        }
+    }
+
+
+    private User createNewOAuth2User(OAuth2User oauth2User, AuthProvider provider, String providerId) {
+        String email = extractRequiredAttribute(oauth2User, EMAIL_ATTRIBUTE);
+
+        if (userRepository.existsByEmail(email)) {
+            log.error("User with email {} already exists with different provider", email);
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("email_exists"),
+                    "Email already exists with different provider"
+            );
+        }
+
+        String firstName = oauth2User.getAttribute(GIVEN_NAME_ATTRIBUTE);
+        String lastName = oauth2User.getAttribute(FAMILY_NAME_ATTRIBUTE);
+
+        if (firstName == null || lastName == null) {
+            String fullName = oauth2User.getAttribute(NAME_ATTRIBUTE);
+            if (fullName != null) {
+                String[] names = fullName.split(" ");
+                firstName = names[0];
+                lastName = names.length > 1 ? names[names.length - 1] : "";
+            }
+        }
+
+        User newUser = User.createOAuth2User(
+                email,
+                firstName != null ? firstName : "Unknown",
+                lastName != null ? lastName : "Unknown",
+                provider,
+                providerId
+        );
+
+        newUser.setAttributes(oauth2User.getAttributes());
+        log.info("Created new OAuth2 user with email: {}", email);
+        return userRepository.save(newUser);
+    }
+
+
+/*
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -42,8 +116,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             String provider = userRequest.getClientRegistration().getRegistrationId();
 
             // Dohvaćamo esencijalne podatke uz validaciju
-            String email = extractRequiredAttribute(oauth2User, EMAIL_ATTRIBUTE);
-            String providerId = extractRequiredAttribute(oauth2User, SUB_ATTRIBUTE);
+          //  String email = extractRequiredAttribute(oauth2User, EMAIL_ATTRIBUTE);
+           //  String providerId = extractRequiredAttribute(oauth2User, SUB_ATTRIBUTE);
+
+            String email;
+            String providerId;
+            if ("github".equals(provider)) {
+                email = extractRequiredAttribute(oauth2User, "email");
+                providerId = String.valueOf(Objects.requireNonNull(oauth2User.getAttribute("id"))); // GitHub koristi "id"
+            } else {
+                // Google provider
+                email = extractRequiredAttribute(oauth2User, "email");
+                providerId = extractRequiredAttribute(oauth2User, "sub");  // Google koristi "sub"
+            }
 
             log.debug("Processing OAuth2 login for user with email: {}, provider: {}", email, provider);
 
@@ -60,6 +145,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
+
+
+
+ */
+/*
     private User createNewOAuth2User(OAuth2User oauth2User, String provider, String providerId) {
         String email = extractRequiredAttribute(oauth2User, EMAIL_ATTRIBUTE);
 
@@ -96,6 +186,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         log.info("Created new OAuth2 user with email: {}", email);
         return userRepository.save(newUser);
     }
+
+ */
 
 
     private Object updateExistingUser(User existingUser, OAuth2User oauth2User) {

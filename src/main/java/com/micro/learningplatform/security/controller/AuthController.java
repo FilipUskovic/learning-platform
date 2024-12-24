@@ -90,7 +90,7 @@ public class AuthController {
 
 
     // o2auth kontrolleri
-
+/*
     @GetMapping("/oauth2/callback/success")
     public ResponseEntity<AuthenticationResponse> handleOAuth2Success(
             @AuthenticationPrincipal OAuth2User oauth2User,
@@ -128,6 +128,8 @@ public class AuthController {
         // Kreiraj i vrati OAuth2UserRequest
         return new OAuth2UserRequest(clientRegistration, (OAuth2AccessToken) oauth2User.getAttributes());
     }
+
+ */
 
 
     @GetMapping("/user")

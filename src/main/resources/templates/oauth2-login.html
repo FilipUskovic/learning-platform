@@ -1,14 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>OAuth2 Test Page</title>
+    <!-- Dodajemo malo CSS-a da gumbi budu bolje stilizirani -->
+    <style>
+        .btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-google {
+            background-color: #DB4437;
+        }
+
+        .btn-github {
+            background-color: #24292e;
+        }
+
+        #user-info {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
 <h1>OAuth2 Test Page</h1>
 
 <h2>Login</h2>
 <div>
-    <a href="/oauth2/authorization/google" class="btn">Login with Google</a>
+    <!-- Google login s ikonom i stilizacijom -->
+    <a href="/oauth2/authorization/google" class="btn btn-google">
+        Login with Google
+    </a>
+
+    <!-- GitHub login s ikonom i stilizacijom -->
+    <a href="/oauth2/authorization/github" class="btn btn-github">
+        Login with GitHub
+    </a>
 </div>
 
 <h2>Trenutni korisnik :</h2>
@@ -17,14 +53,25 @@
 </div>
 
 <script>
-    // Možemo dodati JavaScript koji će prikazati podatke o prijavljenom korisniku
+    // Poboljšani JavaScript za bolji prikaz korisničkih podataka
+    function updateUserInfo(user) {
+        const userInfoElement = document.getElementById('user-info');
+        if (user.message) {
+            userInfoElement.textContent = user.message;
+        } else {
+            const formattedInfo = JSON.stringify(user, null, 2);
+            userInfoElement.textContent = formattedInfo;
+        }
+    }
+
     fetch('/api/v1/auth/user')
         .then(response => response.json())
-        .then(user => {
+        .then(updateUserInfo)
+        .catch(error => {
+            console.error('Error:', error);
             document.getElementById('user-info').textContent =
-                JSON.stringify(user, null, 2);
-        })
-        .catch(error => console.error('Error:', error));
+                'Greška pri dohvaćanju korisničkih podataka';
+        });
 </script>
 </body>
 </html>

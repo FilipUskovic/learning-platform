@@ -59,6 +59,8 @@ dependencies {
 
     // za ucitavanje env fileova za gradle
     implementation ("me.paulschwarz:spring-dotenv:3.0.0")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 
 
     // implementation("org.apache.kafka:kafka-streams")
