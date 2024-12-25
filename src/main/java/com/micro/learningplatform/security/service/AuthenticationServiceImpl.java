@@ -8,13 +8,18 @@ import com.micro.learningplatform.security.AuthProvider;
 import com.micro.learningplatform.security.UserRole;
 import com.micro.learningplatform.security.dto.*;
 import com.micro.learningplatform.security.jwt.JwtService;
+import com.micro.learningplatform.shared.exceptions.AuthenticationFailedException;
 import com.micro.learningplatform.shared.exceptions.InvalidTokenException;
 import com.micro.learningplatform.shared.exceptions.UserAlreadyExistsException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -318,6 +323,34 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return generateAuthenticationResponse(user);
     }
 
+    @Override
+    @Transactional
+    public void logout(HttpServletRequest request, User currentUser) {
+        // Dohvaćamo token iz zahtjeva
+        String authHeader = request.getHeader("Authorization");
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            log.warn("Pokušaj odjave bez validnog authorization headera");
+            throw new InvalidTokenException("Missing or invalid authorization header");
+        }
+
+        try{
+            tokenRepository.revokeAllUserTokens(currentUser);
+
+            SecurityContextHolder.clearContext();
+
+            // Dodatno čistimo HTTP sesiju
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+
+        }catch (Exception e){
+            log.error("Greška prilikom odjave korisnika: {}", currentUser.getEmail(), e);
+            throw new AuthenticationFailedException("Logout failed");
+        }
+
+    }
+
     private User findOrCreateOAuth2User(OAuth2User oauth2User, String provider, String providerId) {
         return userRepository.findByProviderAndProviderId(AuthProvider.valueOf(provider), providerId)
                 .orElseGet(() -> {
@@ -386,6 +419,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Ažurirani OAuth2 atributi za korisnika: {}", user.getEmail());
         }
     }
+
 
 
 }

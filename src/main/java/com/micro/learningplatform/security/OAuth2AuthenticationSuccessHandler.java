@@ -3,6 +3,7 @@ package com.micro.learningplatform.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.micro.learningplatform.models.User;
 import com.micro.learningplatform.models.UserToken;
+import com.micro.learningplatform.repositories.UseRepository;
 import com.micro.learningplatform.repositories.UserTokenRepository;
 import com.micro.learningplatform.security.dto.AuthenticationResponse;
 import com.micro.learningplatform.security.jwt.JwtService;
@@ -13,8 +14,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -31,23 +34,35 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtService jwtService;
     private final UserTokenRepository tokenRepository;
+    private final UseRepository userRepository;
     private final ObjectMapper objectMapper;
 
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
         try {
-            User user = (User) authentication.getPrincipal();
+            User userFromAuth = (User) authentication.getPrincipal();
+            log.debug("Procesuiramo uspješnu OAuth2 autentifikaciju za korisnika: {}",
+                    userFromAuth.getEmail());
+
+            User user = userRepository.findById(userFromAuth.getId())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
             log.debug("Procesuiramo uspješnu OAuth2 autentifikaciju za korisnika: {}",
                     user.getEmail());
 
+
             AuthenticationResponse authResponse = createAuthenticationResponse(user);
+            log.info("authResponse {}", authResponse);
 
             String redirectUrl = prepareRedirectUrl(authResponse);
+            log.info("redirectUrl {}", redirectUrl);
 
             configureSecurityHeaders(response);
+            log.info("redirectUrl {}", response.encodeRedirectURL(redirectUrl));
 
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 

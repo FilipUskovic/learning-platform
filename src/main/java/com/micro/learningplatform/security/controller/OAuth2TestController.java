@@ -1,5 +1,6 @@
 package com.micro.learningplatform.security.controller;
 
+import com.micro.learningplatform.models.User;
 import com.micro.learningplatform.security.dto.AuthenticationResponse;
 import com.micro.learningplatform.security.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +13,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller // spring mvc jer vracam html view
 @RequestMapping("/oauth2")
@@ -29,6 +32,22 @@ public class OAuth2TestController {
         return "oauth2-login";  // Ovo će prikazati oauth2-login.html
     }
 
+
+
+    @GetMapping("/redirect")
+    public String handleRedirect(@RequestParam String access_token,
+                                 @RequestParam String refresh_token,
+                                 @RequestParam String token_type,
+                                 Model model) {
+        // Dodajemo tokene u model da ih možemo prikazati u view-u
+        model.addAttribute("accessToken", access_token);
+        model.addAttribute("refreshToken", refresh_token);
+        model.addAttribute("tokenType", token_type);
+
+        return "oauth2-success";  // Vratit će oauth2-success.html
+    }
+
+
     @GetMapping("show-login")
     public String showLoginPage(Model model,
                                 @AuthenticationPrincipal OAuth2User oauth2User) {
@@ -39,7 +58,19 @@ public class OAuth2TestController {
             model.addAttribute("userPicture", oauth2User.getAttribute("picture"));
         }
 
-        return "oauth2-login";  // ime HTML template-a
+        return "oauth2-login";
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request,
+                                       @AuthenticationPrincipal User currentUser) {
+        log.debug("Zahtjev za odjavu korisnika: {}", currentUser.getEmail());
+
+        authenticationService.logout(request, currentUser);
+
+        log.info("Uspješna odjava korisnika: {}", currentUser.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
 
 }
