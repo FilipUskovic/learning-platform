@@ -53,6 +53,7 @@ public class CourseController {
 
     //radi sve ispravno
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'INSTRUCTOR')")
     public ResponseEntity<CourseResponse> getCourse(@PathVariable UUID id) {
         return ResponseEntity.ok(courseService.getCourse(id));
     }
