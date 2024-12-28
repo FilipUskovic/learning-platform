@@ -323,6 +323,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return generateAuthenticationResponse(user);
     }
 
+    //TODO dodati pravilan login i pracenje sesija te razmisliti o logouthandleru-u od psringboot-a
     @Override
     @Transactional
     public void logout(HttpServletRequest request, User currentUser) {

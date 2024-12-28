@@ -40,28 +40,21 @@
 <a href="/oauth2" class="btn">Back to Login Page</a>
 
 <script>
+    //TODO: dodati pravilan login i pracenje sessije
     function logout() {
         const token = localStorage.getItem('access_token');
 
-        // Ako nema tokena, nemoj odmah prikazati alert, nego pošalji zahtjev serveru
         if (!token) {
-            // Ako nema tokena, pokušaj obrisati sesiju na serveru (fallback)
-            fetch('/api/v1/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            }).finally(() => {
-                window.location.href = '/oauth2';
-            });
+            alert('Već ste odjavljeni.');
+            window.location.href = '/oauth2';
             return;
         }
 
-        // Pohrani token u varijablu
-        const tempToken = token;
-
+        // Pošalji zahtjev za odjavu serveru i čekaj odgovor
         fetch('/api/v1/auth/logout', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + tempToken
+                'Authorization': 'Bearer ' + token
             },
             credentials: 'include'
         })
@@ -69,7 +62,7 @@
                 if (!response.ok) {
                     throw new Error('Neuspješna odjava');
                 }
-                // Briši token samo ako je server potvrdio odjavu
+                // Token brišemo tek nakon što server potvrdi odjavu
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
                 window.location.href = '/oauth2';
@@ -77,7 +70,6 @@
             .catch(error => {
                 console.error('Greška prilikom odjave:', error);
                 alert('Neuspješna odjava. Pokušajte ponovno.');
-                window.location.href = '/oauth2';
             });
     }
 </script>
