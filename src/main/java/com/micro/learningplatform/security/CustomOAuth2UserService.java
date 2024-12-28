@@ -77,11 +77,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
                 providerId = githubId.toString();
 
-                // If we *still* have no email, create a fallback
+                /* If we *still* have no email, create a fallback
                 if (email == null) {
                     log.warn("Korisnik nema email - kreiram fallback email");
                     email = oauth2User.getAttribute("login") + "@github.local";
                 }
+
+                 */
 
             } else {
                 // For Google or other providers that supply "email" & "sub"
@@ -169,7 +171,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             String resolvedEmail  // <--- newly added parameter
     ) {
         // We already have the email from loadUser
-        String email = resolvedEmail;
+      //  String email = resolvedEmail;
 
         // Attempt to retrieve firstName, lastName
         String firstName = oauth2User.getAttribute(GIVEN_NAME_ATTRIBUTE);
@@ -187,7 +189,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // Build a new user
         User newUser = User.createOAuth2User(
-                email,
+                resolvedEmail,
                 firstName != null ? firstName : "Unknown",
                 lastName != null ? lastName : "Unknown",
                 provider,
@@ -197,7 +199,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // Optionally store additional attributes
         newUser.setAttributes(oauth2User.getAttributes());
 
-        log.info("Created new OAuth2 user with email: {}", email);
+        log.info("Created new OAuth2 user with email: {}", resolvedEmail);
         return userRepository.save(newUser);
     }
 
