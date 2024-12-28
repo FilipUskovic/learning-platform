@@ -65,11 +65,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        for (RequestMatcher matcher : PUBLIC_ENDPOINTS) {
-            if (matcher instanceof AntPathRequestMatcher antMatcher) {
-                log.debug("Registrirana javna putanja: {}", antMatcher.getPattern());
-            }
-        }
         http
             .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
@@ -137,47 +132,5 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
-
-
-
-    /*
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                              //  "/api/v1/auth/register",
-                             //   "/api/v1/auth",
-                                "/api/v1/auth/**",
-                                "/oauth2/**",
-                                "/error",
-                                "/login",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
-                        // Dodajemo role-based autorizaciju
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/instructor/**").hasRole("INSTRUCTOR")
-                        .requestMatchers("/api/v1/courses/**").hasAnyRole("USER", "INSTRUCTOR", "ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(oAuth2AuthenticationFailureHandler)
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authenticationProvider(authenticationProvider())  // Koristimo metodu umjesto injectirane instance
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-     */
-
 
 }

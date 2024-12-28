@@ -38,6 +38,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final UseRepository userRepository;
     private final ObjectMapper objectMapper;
 
+
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
