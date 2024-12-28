@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -327,25 +328,39 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void logout(HttpServletRequest request, User currentUser) {
         // Dohvaćamo token iz zahtjeva
         String authHeader = request.getHeader("Authorization");
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("Pokušaj odjave bez validnog authorization headera");
             throw new InvalidTokenException("Missing or invalid authorization header");
         }
 
-        try{
+        // Izvlačenje tokena iz headera
+        String token = authHeader.substring(7);
+
+        try {
+            // Provjera postoji li token u bazi i je li valjan
+            Optional<UserToken> validToken = tokenRepository.findByToken(token);
+
+            if (validToken.isEmpty() || validToken.get().isRevoked()) {
+                log.warn("Pokušaj odjave s nevažećim ili opozvanim tokenom.");
+                throw new InvalidTokenException("Token is invalid or already revoked.");
+            }
+
+            // Opoziv svih tokena korisnika
             tokenRepository.revokeAllUserTokens(currentUser);
 
             SecurityContextHolder.clearContext();
 
-            //  čistimo HTTP sesiju
+            // Čišćenje HTTP sesije
             HttpSession session = request.getSession(false);
             if (session != null) {
                 session.invalidate();
             }
 
-        }catch (Exception e){
+            log.info("Korisnik {} uspješno odjavljen.", currentUser.getEmail());
+
+        } catch (Exception e) {
             log.error("Greška prilikom odjave korisnika: {}", currentUser.getEmail(), e);
-            throw new AuthenticationFailedException("Logout failed");
+            throw new AuthenticationFailedException("Logout failed due to internal error.");
         }
 
     }

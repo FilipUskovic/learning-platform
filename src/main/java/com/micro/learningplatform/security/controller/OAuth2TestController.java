@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -51,24 +52,26 @@ public class OAuth2TestController {
     @GetMapping("show-login")
     public String showLoginPage(Model model,
                                 @AuthenticationPrincipal OAuth2User oauth2User) {
-        // Ako je korisnik već ulogiran, dodajemo njegove podatke u model
         if (oauth2User != null) {
             model.addAttribute("userEmail", oauth2User.getAttribute("email"));
             model.addAttribute("userName", oauth2User.getAttribute("name"));
             model.addAttribute("userPicture", oauth2User.getAttribute("picture"));
+        } else {
+            model.addAttribute("error", "Korisnik nije prijavljen.");
         }
-
         return "oauth2-login";
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request,
                                        @AuthenticationPrincipal User currentUser) {
-        log.debug("Zahtjev za odjavu korisnika: {}", currentUser.getEmail());
+        if (currentUser == null) {
+            log.warn("Pokušaj odjave bez autentifikacije.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         authenticationService.logout(request, currentUser);
 
-        log.info("Uspješna odjava korisnika: {}", currentUser.getEmail());
         return ResponseEntity.ok().build();
     }
 
