@@ -1,7 +1,6 @@
 package com.micro.learningplatform.security.controller;
 
 import com.micro.learningplatform.models.User;
-import com.micro.learningplatform.security.dto.AuthenticationResponse;
 import com.micro.learningplatform.security.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
 
 @Controller // spring mvc jer vracam html view
 @RequestMapping("/oauth2")

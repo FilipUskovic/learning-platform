@@ -7,6 +7,8 @@ import com.micro.learningplatform.security.OAuth2AuthenticationSuccessHandler;
 import com.micro.learningplatform.security.jwt.JwtAuthenticationEntryPoint;
 import com.micro.learningplatform.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +36,7 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final Logger log = LogManager.getLogger(SecurityConfig.class);
     /** Ovdje nam
      */
 
@@ -48,7 +51,7 @@ public class SecurityConfig {
             new AntPathRequestMatcher("/api/v1/auth/**"),
             new AntPathRequestMatcher("/oauth2/**"),
             new AntPathRequestMatcher("/oauth2/authorization/**"), // za 02auth
-            new AntPathRequestMatcher("/login/oauth2/code/**"), // i gogole
+            new AntPathRequestMatcher("/login/oauth2/code/**"), // i gogole/github
          //   new AntPathRequestMatcher("/api/v1/auth/oauth2/callback/**"), // dodao i  ovo
             new AntPathRequestMatcher("/error"),
             new AntPathRequestMatcher("/login")
@@ -62,6 +65,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        for (RequestMatcher matcher : PUBLIC_ENDPOINTS) {
+            if (matcher instanceof AntPathRequestMatcher antMatcher) {
+                log.debug("Registrirana javna putanja: {}", antMatcher.getPattern());
+            }
+        }
         http
             .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth

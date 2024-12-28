@@ -7,7 +7,6 @@ import com.micro.learningplatform.repositories.UseRepository;
 import com.micro.learningplatform.repositories.UserTokenRepository;
 import com.micro.learningplatform.security.dto.AuthenticationResponse;
 import com.micro.learningplatform.security.jwt.JwtService;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,45 +38,47 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final UseRepository userRepository;
     private final ObjectMapper objectMapper;
 
-
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
+        log.debug("OAuth2 authentication success handler pokrenut");
+
         try {
-            User userFromAuth = (User) authentication.getPrincipal();
-            log.debug("Procesuiramo uspješnu OAuth2 autentifikaciju za korisnika: {}",
-                    userFromAuth.getEmail());
+            // 1) The 'principal' should actually be your domain User
+            if (authentication.getPrincipal() instanceof User domainUser) {
+                // 2) Directly grab the real email from your domain User
+                String email = domainUser.getEmail();
+                log.debug("Korisnik se upravo prijavio s emailom: {}", email);
 
-            User user = userRepository.findById(userFromAuth.getId())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                // 3) Optionally re-fetch from DB, if needed
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
-            log.debug("Procesuiramo uspješnu OAuth2 autentifikaciju za korisnika: {}",
-                    user.getEmail());
+                log.debug("Pronađen korisnik u bazi: {}", user.getEmail());
 
+                // 4) Continue your existing logic: create JWT tokens, etc.
+                AuthenticationResponse authResponse = createAuthenticationResponse(user);
+                String redirectUrl = prepareRedirectUrl(authResponse);
 
-            AuthenticationResponse authResponse = createAuthenticationResponse(user);
-            log.info("authResponse {}", authResponse);
+                configureSecurityHeaders(response);
+                getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 
-            String redirectUrl = prepareRedirectUrl(authResponse);
-            log.info("redirectUrl {}", redirectUrl);
-
-            configureSecurityHeaders(response);
-            log.info("redirectUrl {}", response.encodeRedirectURL(redirectUrl));
-
-            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-
-            log.info("OAuth2 autentifikacija uspješno završena za korisnika: {}",
-                    user.getEmail());
-
-        }catch (Exception e) {
+            } else {
+                // If the principal isn't your domain User, throw an error
+                log.error("Neočekivani tip principala: {}",
+                        authentication.getPrincipal().getClass().getName());
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error("invalid_principal"),
+                        "Unexpected principal type"
+                );
+            }
+        } catch (Exception e) {
             log.error("Greška tijekom OAuth2 success handlera", e);
             handleAuthenticationError(response, e);
         }
-        
     }
-
 
 
     private AuthenticationResponse createAuthenticationResponse(User user) {
@@ -149,62 +152,4 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 
-
-
-    /*
-    @Override
-    public void onAuthenticationSuccess(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Authentication authentication) throws IOException, ServletException {
-
-        User user = (User) authentication.getPrincipal();
-
-        // Koristimo custom claims iz JwtService-a
-        String token = jwtService.generateToken(
-                jwtService.generateCustomClaims(user),
-                user
-        );
-
-        // Također generiramo refresh token
-        String refreshToken = jwtService.generateRefreshToken(user);
-
-        // Spremamo oba tokena
-        saveUserTokens(user, token, refreshToken);
-
-        // Šaljemo oba tokena frontendu
-        String redirectUrl = UriComponentsBuilder.fromUriString("/oauth2/redirect")
-                .queryParam("access_token", token)
-                .queryParam("refresh_token", refreshToken)
-                .build().toUriString();
-
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-    }
-
-    private void saveUserTokens(User user, String accessToken, String refreshToken) {
-        // Prvo opozovemo sve postojeće tokene
-        tokenRepository.revokeAllUserTokens(user);
-
-        var newAccessToken = UserToken.createAccessToken(
-                user,
-                accessToken,
-                jwtService.getAccessTokenExpiration(LocalDateTime.now())
-
-        );
-
-        // Za refresh token - pretpostavljamo 7 dana trajanje
-        var newRefreshToken = UserToken.createRefreshToken(
-                user,
-                refreshToken,
-                jwtService.getRefreshTokenExpiration(LocalDateTime.now())
-
-
-        );
-
-        user.addToken(newAccessToken);
-        user.addToken(newRefreshToken);
-        tokenRepository.saveAll(Arrays.asList(newAccessToken, newRefreshToken));
-    }
-
-     */
 }
