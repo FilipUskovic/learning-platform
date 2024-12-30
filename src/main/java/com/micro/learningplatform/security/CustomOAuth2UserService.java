@@ -23,9 +23,18 @@ import java.util.*;
 @Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
+    //todo: drzati se ili hrv ili eng jezika
 
+    /* Glvana zadace ove klase je :
+        1. Identificirati "provider" (htihub i gogole=
+        2. dohvatiti korisnikive attribute (name, sub, prviderId, orezime)
+        3. spremiti u bazu
+        4. atiti O2authUser-a
+
+     */
+
+    // korsitimo rest template samo u metodu fetchGithubEmail za ragovor s guthub-om
     private final RestTemplate restTemplate = new RestTemplate();
-
     private final UseRepository userRepository;
 
     private static final String EMAIL_ATTRIBUTE = "email";
@@ -59,6 +68,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             String email;
             String providerId;
 
+            // todo ako budem dodavo vise providera jos kao npr linkedIn i facebook razmisliti o Map<AuthProvider, OAuth2ProviderHandler> umjesto if-else
             if (provider == AuthProvider.GITHUB) {
                 email = oauth2User.getAttribute(EMAIL_ATTRIBUTE);
                 if (email == null) {

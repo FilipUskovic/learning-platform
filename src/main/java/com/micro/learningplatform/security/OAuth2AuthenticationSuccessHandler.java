@@ -38,15 +38,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final UseRepository userRepository;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Klasa koje se "aktivira" ako je korisnik usijesno prode autentifikaciju od vasnjkog providra
-     *
+    //todo primjetio sam da mogu napraviti centralizirani servis za createAndSaveTokens posoto imaom u autehServicu i ovdje
 
+    /*
+     * Klasa koje se "aktivira" ako je korisnik usijesno prode autentifikaciju od vasnjkog providra
      */
 
-
     /**
-     *
+     * kada je vasnjski provider githib ili google uspijesno autehtificaro korisnika ova metoda kreira jwt token i upisuje ih u bazu
+     * i presumjerujemo korisnika  na stranicu
      */
     @Override
     @Transactional

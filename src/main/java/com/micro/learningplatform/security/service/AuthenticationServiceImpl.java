@@ -43,6 +43,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserTokenRepository tokenRepository;
+    private final TokenValidationService tokenValidationService;
 
     //TOdo dodati bolje respone odgovore za metdoe, malo bolje validaciju pogotov za admiin metode
 
@@ -51,6 +52,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * Kreira korisnika, generira tokene i sprema ih u bazu.
      * Trenutne samo register metode odmah vracaju u accesstoken nije potrebni verificira iako je moguce
      * trenutno je samo jwt sve bez o2auth-a
+     */
+
+
+    //todo no1 : umjesto 4 ili 5 razlicitih metoda za reistiranje korisnika mogao bi imati nesto ovako
+
+    /*
+      public AuthenticationResponse registerUser(RegisterRequest request, List<UserRole> roles) {
+    // 1) Provjera email-a
+    // 2) Stvaranje korisnika
+    // 3) Dodjela proslijeđenih rola
+    // 4) Generiranje tokena
+    // 5) Vraćanje auth response-a
+        }
+
+        pa u controlle-u onda postavitif
      */
 
     @Override
@@ -117,12 +133,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        if (!jwtService.isTokenValid(refreshToken, user) || !tokenValidationService.isTokenActive(refreshToken)) {
+            throw new InvalidTokenException("Invalid or revoked token");
+        }
+
+
+        /*
         var storedToken = tokenRepository.findValidToken(refreshToken, LocalDateTime.now())
                 .orElseThrow(() -> new InvalidTokenException("Refresh token not found or expired"));
 
         if (!jwtService.isTokenValid(refreshToken, user) || storedToken.isRevoked()) {
             throw new InvalidTokenException("Invalid refresh token");
         }
+
+         */
 
        return generateAuthenticationResponse(user);
     }

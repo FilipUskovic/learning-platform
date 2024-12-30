@@ -312,11 +312,31 @@ dan 11 kraj
 
  - Imati cu tako:
     * Centalizirano Upravljanje 0auth2 centraliziacju authoziaciskih odlika
-    * stateless provjera jwt omogcuje statless provjer i smanjuje opterecenje prema serveru
+    * stateless provjera jwt omogcuje statless provjer i smanjuje opterecenje prema serveru - ako je potreban jer za oauth2 
     * skalabilsnot . bit ce dobra za mucroservis
     * sigursnot - nekako je selfexplanotry
  * 
  
+Security dio :
+ 1. Imam jwtFilter klasu koja implementira oncePerFilter koja presrece zahtijeve za koji koriste jwt za autentifikaciju
+    -> imamo razlicite metode doFilter i shloudNotFilter koje upravljaju dohvacenima zahtijevima uz pomoc auth headera i potpisa i suraduju s springSecurityConfigo-om
+    -> 
+ 2. Spring security - je srce nase autehnitifkacije definira kako se tretiraju razlicit http zahtijevi (razmislit o tls za https encripticju)
+    -> tu imamo password enc i AuthenticationProvider za validiranje podatka koje dobivamo iz baze te
+    -> filter chain kao glavna metoda koja autentificira nadolazeci zatijeve i omogucuje session i login za jwt i o2auht
+ 3. CustomOAuth2UserService koja ce indetificrait providere (google i github) u nasem slucaju, dohvatiti attribute spremaiti u bazu te vratiti o2authUser-a
+ 
+ 4. OAuth2AuthenticationSuccessHandler klasa koja se aktivira ako korisnik uspijesno prode autentifikaciju 
+    -> i preusmjerava na oderdne stranice
+
+ 5. OAuth2AuthenticationFailerHandler -> koji rukuje kada se dogode greske za prilikom o2auth autentifikacije 
+
+ 6. jwtservice - service koje korsiit secerKey prilikom pokretanje i generira tokene i ostale informacije kao npr: token i potpis ime korsinik i vrijeme trajanj token
+ 
+ 7. auth service je glavni servis za authenitifkaciju jwt i o2auth registraciju korsinika (user, instcurot i admin) te logout i login
+ 
+ 8. User (koji nasljecuje Userdetails i O2authUser za rad s jwt tokenima i 02auth-om google i github) i UserToken entetiy 
+    
 
 
 

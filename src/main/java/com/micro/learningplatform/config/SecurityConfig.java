@@ -27,8 +27,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -65,9 +65,15 @@ public class SecurityConfig {
     };
 
 
+    //TODO razmilsit o uvodenju rivatnih metoda koje za logicke blokove unutram securityFilterChain npr:
+      //configureAuthorization, configureOAuth2, configureSessionManagement kao bi smanjili velicina metoda i povecala citljivost
+      //
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable) // jer koritimo jwt
                 .authorizeHttpRequests(auth -> auth
                         // dopustam javnim endpoint pristup svima
@@ -91,6 +97,7 @@ public class SecurityConfig {
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
+
                 .sessionManagement(session -> session
                         /* jer imamo jwt koji je statles i oAuth2 koji mora proci kroz cijeli svoj flow
                            1. o2auth zahtijeva sesiju tijekom authentifikaciskog proces
@@ -104,6 +111,7 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider())  // Koristimo metodu umjesto injectirane instance
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
@@ -124,7 +132,6 @@ public class SecurityConfig {
     /* Ova metoda je kljucna za autentifikaciju jer konfigurira kako spring security validirati korsinicke kredenciale
      *  DaoAuthenticationProvider mozemo ga zamislit kao most izmedu korisnickih podatka koje dobivamo iz baze i enkripcije
      *
-
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -134,9 +141,23 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    // sada ukljucujemo CorsConfigurationSource u security filter chain umjesto rucnog krairanj corsFilter()
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     // kljucno za komunikacije fornt i back-enda gdje app cesto komunicirajmu preko razlicitih domea
     //TODO razmilsiti o prebacivanju corss-a u yaml i razmotirit sigurnosti implikacije za ("*")
+
+    /*
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -148,5 +169,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
+
+     */
 
 }

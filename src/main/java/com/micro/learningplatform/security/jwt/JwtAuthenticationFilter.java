@@ -42,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     // Thread pool za paralelno procesiranje tokena
+     // shudown() ExecutorService-a da ne bi doslo do curenja resursa - done
     private final ExecutorService tokenValidationExecutor =
             Executors.newVirtualThreadPerTaskExecutor();
 
@@ -98,7 +99,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     .orElse(false),
                             tokenValidationExecutor);
 
-            // Čekamo rezultate validacije
+            // Čekamo rezultate validacije, no razmislit sbakako o dodavanju jwt-validations-timeout-ms za flekibilnost u propertis yaml
             String userEmail = userEmailFuture.get(500, TimeUnit.MILLISECONDS);
             boolean isValidToken = tokenValidityFuture.get(500, TimeUnit.MILLISECONDS);
 
