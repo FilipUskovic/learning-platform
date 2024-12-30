@@ -259,8 +259,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
-
+    /* kada korisnik prode autenitifkaciju (jwt ili oauth2) sustav kreira i upravlja tokenima
+       -> prakiticka ova metoda izdaje tokene "prpusnice" za korsnike
+     */
     private AuthenticationResponse generateAuthenticationResponse(User user) {
+
         var accessToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
@@ -274,6 +277,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
+    // acess token je trenutna "dnevna" popusnica i refres token "long term"
     private void saveUserTokens(User user, String accessToken, String refreshToken) {
         // Prvo opozivamo sve postojeće tokene
         tokenRepository.revokeAllUserTokens(user);

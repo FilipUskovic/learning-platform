@@ -38,7 +38,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final UseRepository userRepository;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Klasa koje se "aktivira" ako je korisnik usijesno prode autentifikaciju od vasnjkog providra
+     *
 
+     */
+
+
+    /**
+     *
+     */
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -47,13 +56,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         log.debug("OAuth2 authentication success handler pokrenut");
 
         try {
+            /* ovaj hendlaer preuzima podatke od koje smo dobili od vasnjkog provider-a
+             * provjerava imammo li vec korisnika u sustavu i ako imamo kreira mu jwt token za dalje korsitenje
+
+             */
             // 1) The 'principal' should actually be your domain User
             if (authentication.getPrincipal() instanceof User domainUser) {
                 // 2) Directly grab the real email from your domain User
                 String email = domainUser.getEmail();
                 log.debug("Korisnik se upravo prijavio s emailom: {}", email);
 
-                // 3) Optionally re-fetch from DB, if needed
+
                 User user = userRepository.findByEmail(email)
                         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
@@ -82,6 +95,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
 
+    //
     private AuthenticationResponse createAuthenticationResponse(User user) {
         // Generiramo access i refresh tokene s dodatnim podacima o korisniku
         Map<String, Object> customClaims = new HashMap<>();

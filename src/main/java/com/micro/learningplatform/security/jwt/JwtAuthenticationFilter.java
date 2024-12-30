@@ -14,7 +14,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -32,6 +31,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    /** ova klasa je prva linije obrane za zahtijeve koji korsite jwt autejtifikcaiju
+     * Ova klasa se radi prije i izmedu svakog zahtijeva te filtira autentifikacije po logici
+     *
+     */
+
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final UserTokenRepository tokenRepository;
@@ -43,17 +47,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
 
-
+    // filter presrece svaki nas zahtijev koji nije public
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         boolean shouldNotFilter =
-               // path.equals("/api/v1/auth/login") ||
                 path.equals("/api/v1/auth/register") ||
                 path.equals("/api/v1/auth/refresh-token") ||
                 path.startsWith("/oauth2/") ||
                 path.startsWith("/login/oauth2/") ||
-              //  path.startsWith("/api/v1/auth/oauth2/") ||
                 path.contains("/swagger-ui") ||
                 path.contains("/v3/api-docs");
 
@@ -62,13 +64,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
 
+    /** ako zahtijev treba filtrirati korsiitmo virtual threads koji istovremenu provjerava 2 stvari za propust
+     * je li jwt potpis valjan i jeli propusnica (findValidToken) jos uvijek aktivna
+     *
+     */
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         log.debug("Primljen zahtjev na putanji: {}", request.getServletPath());
 
-
+        // 1. izvlacimo token iz header-a
         final String authHeader = request.getHeader("Authorization");
         log.debug("Authorization header: {}", authHeader);
 

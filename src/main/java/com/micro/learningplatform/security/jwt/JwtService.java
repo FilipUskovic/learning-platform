@@ -27,6 +27,13 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtService {
 
+    /*
+     * Ovo je kljucna klasa koja kreira i radi s tokenima
+     * Osigurava da su tokeni validini da svaki token ima dobar potpis
+     * - tskoder za generaciju i stvaranje tokena i refresh tokena
+     * te sigurnostnih kljucvea koji se krairau za vrijeme pokretanja
+     */
+
     private static final Logger log = LogManager.getLogger(JwtService.class);
     
     @Value("${security.jwt.secret-key}")
@@ -49,12 +56,14 @@ public class JwtService {
     }
 
     // Inicijaliziramo signing key pri pokretanju servisa
+    // prakitcki secret key je jedinstvne te propustamo pristup samo valjanim kljucevima
     @PostConstruct
     public void init() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // metod akoje generira novi token prema pomocnoj metodi buildtoken
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         LocalDateTime now = LocalDateTime.now();
         return buildToken(extraClaims, userDetails, getAccessTokenExpiration(now));
@@ -69,6 +78,7 @@ public class JwtService {
         return buildToken(new HashMap<>(), userDetails, getRefreshTokenExpiration(now));
     }
 
+    // dodajmo osnovne imformacije o korisniku, i dodatne ako si potreben imamo vremenski "zig" i vrijeme istjecanja
     private String buildToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,

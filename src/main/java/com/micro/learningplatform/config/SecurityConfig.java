@@ -37,7 +37,8 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
 
     private static final Logger log = LogManager.getLogger(SecurityConfig.class);
-    /** Ovdje nam
+    /** Ovdje je klasa "srce" nase centralne sigurnosti tj nase sigurnosne konfiguracije
+     * Definira kako app tretira zarlicite http zahtijeve i kako se porvodi autehntifikacija
      */
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -52,24 +53,26 @@ public class SecurityConfig {
             new AntPathRequestMatcher("/oauth2/**"),
             new AntPathRequestMatcher("/oauth2/authorization/**"), // za 02auth
             new AntPathRequestMatcher("/login/oauth2/code/**"), // i gogole/github
-         //   new AntPathRequestMatcher("/api/v1/auth/oauth2/callback/**"), // dodao i  ovo
             new AntPathRequestMatcher("/error"),
             new AntPathRequestMatcher("/login")
     };
 
-    private static final RequestMatcher[] SWAGGER_ENDPOINTS = {
+    private static final RequestMatcher[] API_DOCS_ENDPOINTS = {
             new AntPathRequestMatcher("/swagger-ui/**"),
-            new AntPathRequestMatcher("/v3/api-docs/**")
+            new AntPathRequestMatcher("/v3/api-docs/**"),
+            new AntPathRequestMatcher("/v3/api-docs.yaml")  //  podrška za YAML format
+
     };
 
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable) // jer koritimo jwt
                 .authorizeHttpRequests(auth -> auth
+                        // dopustam javnim endpoint pristup svima
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
+                        .requestMatchers(API_DOCS_ENDPOINTS).permitAll()
                         // role based authentifikacija
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/instructor/**").hasRole("INSTRUCTOR")
@@ -77,22 +80,27 @@ public class SecurityConfig {
                                 .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
+                                /* nasa custom auth2 service klasa za oauth2
+                                  1. customOAuth2UserService ucitava i kreira korisnike nakon uspijsne oauth2 authetifikcije
+                                  2. successHandler -> generira jwt tokene nakon tokene nakon uspijesne autentifiaijce
+                                  3. fauilureHanlder upravlja greskama
+                                 */
                                 .userService(customOAuth2UserService)
                         )
+                        // ako je uspijesno authent klas preuzima kontrolu
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler)
-                        /*
-                        .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/oauth2/authorize"))
-                         */
-
                 )
                 .sessionManagement(session -> session
-                      //  .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        /* jer imamo jwt koji je statles i oAuth2 koji mora proci kroz cijeli svoj flow
+                           1. o2auth zahtijeva sesiju tijekom authentifikaciskog proces
+                           2. nakoon uspijesne autehtigikacije generiramo jwt tokene
+                           3. za buduce zahtijeve s jwt tokenima sesija se ne kreira
+                         */
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())  // Dodaj EntryPoint
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
                 )
                 .authenticationProvider(authenticationProvider())  // Koristimo metodu umjesto injectirane instance
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -106,12 +114,18 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // kordinira proces autenfikacije
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /* Ova metoda je kljucna za autentifikaciju jer konfigurira kako spring security validirati korsinicke kredenciale
+     *  DaoAuthenticationProvider mozemo ga zamislit kao most izmedu korisnickih podatka koje dobivamo iz baze i enkripcije
+     *
+
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -121,6 +135,8 @@ public class SecurityConfig {
     }
 
 
+    // kljucno za komunikacije fornt i back-enda gdje app cesto komunicirajmu preko razlicitih domea
+    //TODO razmilsiti o prebacivanju corss-a u yaml i razmotirit sigurnosti implikacije za ("*")
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
